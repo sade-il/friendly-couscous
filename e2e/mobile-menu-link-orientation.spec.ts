@@ -43,12 +43,10 @@ const sectionTop = (page: Page, id: string) =>
 
 const waitForScrollSettled = async (page: Page) => {
   await page.waitForFunction(() => {
-    // @ts-expect-error - window-scoped helper
-    if (typeof window.__lastY === "undefined") window.__lastY = -1;
-    // @ts-expect-error
-    const same = window.__lastY === window.scrollY;
-    // @ts-expect-error
-    window.__lastY = window.scrollY;
+    const w = window as Window & { __lastY?: number };
+    if (typeof w.__lastY === "undefined") w.__lastY = -1;
+    const same = w.__lastY === window.scrollY;
+    w.__lastY = window.scrollY;
     return same;
   }, undefined, { timeout: 3000, polling: 150 });
 };

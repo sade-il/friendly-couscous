@@ -31,12 +31,11 @@ const sectionTop = (page: Page, id: string) =>
 
 const waitForScrollSettled = async (page: Page) => {
   await page.waitForFunction(() => {
-    // @ts-ignore
-    if (typeof window.__lastY === "undefined") (window as any).__lastY = -1;
+    const w = window as Window & { __lastY?: number };
+    if (typeof w.__lastY === "undefined") w.__lastY = -1;
     const y = window.scrollY;
-    // @ts-ignore
-    const same = (window as any).__lastY === y;
-    (window as any).__lastY = y;
+    const same = w.__lastY === y;
+    w.__lastY = y;
     return same && y > 0;
   }, null, { timeout: 3000 }).catch(() => {});
   await page.waitForTimeout(150);
