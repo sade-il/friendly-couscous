@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Calculator, Box, Grid3x3, TrendingUp, Square, TreePine, ArrowLeft } from "lucide-react";
+import { Calculator, Box, Grid3x3, TrendingUp, Square, TreePine, ArrowLeft, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ const WHATSAPP_TEXT = "שלום, אשמח לשלוח נתוני חישוב לב�
 
 type CalcKey = "concrete" | "rebar" | "slope" | "tiles" | "pergola";
 
-const calcs: { key: CalcKey | "more"; icon: any; title: string; desc: string }[] = [
+const calcs: { key: CalcKey | "more"; icon: LucideIcon; title: string; desc: string }[] = [
   { key: "concrete", icon: Box, title: "מחשבון בטון", desc: "כמות בטון נדרשת ליציקה לפי נפח ועובי." },
   { key: "rebar", icon: Grid3x3, title: "מחשבון ברזל זיון", desc: "כמות ומשקל ברזל לפי קוטר, מרווח ושטח." },
   { key: "slope", icon: TrendingUp, title: "מחשבון שיפוע", desc: "חישוב שיפוע גגות, מרפסות ורצפות ניקוז." },
