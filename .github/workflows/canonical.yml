@@ -1,0 +1,364 @@
+name: Canonical SEO check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sitemap:
+        description: "Live sitemap URL to validate (production check job)"
+        required: false
+        default: "https://sade-il.com/sitemap.xml"
+  schedule:
+    # Daily at 06:00 UTC — catches regressions in the live site
+    - cron: "0 6 * * *"
+
+jobs:
+  # Fast PR gate (~30s): structure-only sitemap check — XML validity, lastmod
+  # format, host, no duplicates, and zero drift between scripts/generate-
+  # sitemap.ts ROUTES and the committed public/sitemap.xml. No build needed.
+  sitemap-structure:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Regenerate sitemap (ensure it matches ROUTES)
+        run: bunx tsx scripts/generate-sitemap.ts
+      - name: Validate sitemap structure (no build)
+        run: bun run validate:sitemap:structure
+
+
+  # Fast PR gate (~10s): unit tests for the redirect-canonical decoding
+  # contract. Runs all `src/test/redirect-*.test.ts` files (≈423 cases)
+  # AND enforces a per-file coverage threshold on
+  # `src/lib/redirect-canonical.ts` (lines/funcs/statements 100%,
+  # branches ≥94%). Failing the gate means the contract drifted from the
+  # tests and the sitemap-collision detector is no longer trustworthy.
+  redirect-canonicalization:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Run redirect canonicalization tests + coverage gate
+        run: bun run test:coverage
+      - name: Stage coverage artifact with source for accurate line mapping
+        if: always()
+        # The vitest HTML reporter embeds source snippets, but the lcov
+        # report (`coverage/lcov.info`) only stores RELATIVE paths
+        # (`src/lib/redirect-canonical.ts`). External lcov consumers
+        # (Codecov, Coveralls, `genhtml`) need the matching source tree
+        # next to `lcov.info` to render accurate line-by-line annotations.
+        # We ship the gated source file + the two coverage-contributing
+        # test files + tsconfig so the artifact is self-sufficient.
+        run: |
+          set -euo pipefail
+          mkdir -p coverage/sources/src/lib coverage/sources/src/test
+          cp src/lib/redirect-canonical.ts            coverage/sources/src/lib/
+          cp src/test/redirect-decoding-order-collision.test.ts        coverage/sources/src/test/
+          cp src/test/redirect-malformed-query-hash-collision.test.ts  coverage/sources/src/test/
+          cp tsconfig.json tsconfig.app.json          coverage/sources/
+          cat > coverage/sources/README.md <<'EOF'
+          # Coverage source mirror
+
+          These files mirror the project layout that `coverage/lcov.info`
+          references. Point `genhtml` (or any lcov viewer) at the parent
+          `coverage/` directory with `--prefix sources/` to get accurate
+          line mapping. The HTML report in `coverage/index.html` already
+          embeds source snippets and works standalone.
+          EOF
+      - name: Generate coverage artifact manifest (files + sha256)
+        if: always()
+        # Emits `coverage/manifest.json` and `coverage/manifest.sha256` so
+        # consumers can verify the artifact is complete and untampered.
+        #
+        # Determinism contract — re-running this step against the same
+        # `coverage/` tree MUST produce byte-identical manifest files:
+        #   * File list: `find -printf '%P\n' | LC_ALL=C sort` gives a
+        #     locale-stable, path-only, lexicographically sorted listing.
+        #   * Exclusions: the manifest files themselves + every known
+        #     transient/editor/OS artifact (see EXCLUDE patterns) so
+        #     stray temp files never poison the hash set.
+        #   * Volatile metadata (timestamps, hostnames, PIDs) is NEVER
+        #     written. `commit` / `workflowRun` are inputs, not noise:
+        #     they only change when the underlying build changes.
+        #
+        # CLI verification after extracting the artifact:
+        #   cd redirect-canonical-coverage && sha256sum -c manifest.sha256
+        run: |
+          set -euo pipefail
+          if [ ! -d coverage ]; then
+            echo "coverage/ missing — skipping manifest"
+            exit 0
+          fi
+          cd coverage
+          # Stable, sorted file list relative to coverage/. Excludes:
+          #   - the manifest outputs themselves (would be self-referential)
+          #   - editor/OS junk: .DS_Store, Thumbs.db, *.swp, *.swo, *~
+          #   - generic temp patterns: *.tmp, *.temp, *.bak, *.log,
+          #     *.partial, *.crdownload, .#* (emacs lockfiles)
+          mapfile -t FILES < <(
+            find . -type f \
+              ! -name 'manifest.json' \
+              ! -name 'manifest.sha256' \
+              ! -name '.DS_Store' \
+              ! -name 'Thumbs.db' \
+              ! -name 'desktop.ini' \
+              ! -name '*.swp' \
+              ! -name '*.swo' \
+              ! -name '*~' \
+              ! -name '.#*' \
+              ! -name '*.tmp' \
+              ! -name '*.temp' \
+              ! -name '*.bak' \
+              ! -name '*.log' \
+              ! -name '*.partial' \
+              ! -name '*.crdownload' \
+              -printf '%P\n' | LC_ALL=C sort -u
+          )
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "No files to hash under coverage/ — aborting manifest"
+            exit 1
+          fi
+          # sha256sum -c compatible file. Built in sorted order, then
+          # passed through `LC_ALL=C sort` again as belt-and-braces against
+          # any future ordering regression in the loop.
+          : > manifest.sha256.unsorted
+          for f in "${FILES[@]}"; do
+            sha256sum "$f" >> manifest.sha256.unsorted
+          done
+          LC_ALL=C sort -k2 manifest.sha256.unsorted > manifest.sha256
+          rm -f manifest.sha256.unsorted
+          # Deterministic JSON manifest. NO timestamps, NO hostnames.
+          # `commit` / `workflowRun` reflect the build inputs and are
+          # stable across re-runs of the same workflow run.
+          {
+            printf '{\n'
+            printf '  "schemaVersion": 1,\n'
+            printf '  "commit": "%s",\n' "${GITHUB_SHA:-unknown}"
+            printf '  "workflowRun": "%s",\n' "${GITHUB_RUN_ID:-unknown}"
+            printf '  "fileCount": %d,\n' "${#FILES[@]}"
+            printf '  "files": [\n'
+            last=$((${#FILES[@]} - 1))
+            for i in "${!FILES[@]}"; do
+              f="${FILES[$i]}"
+              size=$(stat -c '%s' "$f")
+              hash=$(sha256sum "$f" | awk '{print $1}')
+              sep=","
+              [ "$i" -eq "$last" ] && sep=""
+              printf '    {"path": "%s", "size": %d, "sha256": "%s"}%s\n' \
+                "$f" "$size" "$hash" "$sep"
+            done
+            printf '  ]\n'
+            printf '}\n'
+          } > manifest.json
+          echo "Manifest covers ${#FILES[@]} files (deterministic, sorted, temp-excluded)"
+      - name: Upload coverage report (HTML + lcov + json-summary + source mirror)
+        id: upload-coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redirect-canonical-coverage
+          path: coverage/
+          retention-days: 14
+          include-hidden-files: false
+          if-no-files-found: error
+      - name: Verify uploaded artifact by re-downloading and re-hashing
+        if: always() && steps.upload-coverage.outcome == 'success'
+        # Round-trip integrity check: download the artifact we just
+        # uploaded into a clean directory, recompute sha256 for every
+        # file using the SAME exclusion rules as the manifest step, and
+        # compare against the published `manifest.sha256`. This catches:
+        #   * upload truncation / corruption
+        #   * accidental inclusion of files post-manifest
+        #   * non-determinism regressions in the manifest script
+        # Uses `sha256sum -c` for the per-file check + a byte-level diff
+        # of a freshly-regenerated checksum file against the published
+        # one to detect any extra/missing entries.
+        uses: actions/download-artifact@v4
+        with:
+          name: redirect-canonical-coverage
+          path: coverage-roundtrip/
+      - name: Re-hash downloaded artifact and compare to published manifest
+        if: always() && steps.upload-coverage.outcome == 'success'
+        run: |
+          set -euo pipefail
+          cd coverage-roundtrip
+          if [ ! -f manifest.sha256 ] || [ ! -f manifest.json ]; then
+            echo "Downloaded artifact is missing manifest files" >&2
+            exit 1
+          fi
+          # 1. Verify every published hash against the downloaded bytes.
+          sha256sum -c manifest.sha256
+          # 2. Regenerate the checksum file from the download using the
+          #    SAME ordering + exclusion rules as the upload-side script,
+          #    then diff against the published one. Any extra/missing
+          #    file (e.g. artifact picked up a stray temp file) shows up
+          #    as a non-empty diff and fails the job.
+          mapfile -t FILES < <(
+            find . -type f \
+              ! -name 'manifest.json' \
+              ! -name 'manifest.sha256' \
+              ! -name '.DS_Store' \
+              ! -name 'Thumbs.db' \
+              ! -name 'desktop.ini' \
+              ! -name '*.swp' \
+              ! -name '*.swo' \
+              ! -name '*~' \
+              ! -name '.#*' \
+              ! -name '*.tmp' \
+              ! -name '*.temp' \
+              ! -name '*.bak' \
+              ! -name '*.log' \
+              ! -name '*.partial' \
+              ! -name '*.crdownload' \
+              -printf '%P\n' | LC_ALL=C sort -u
+          )
+          : > manifest.sha256.roundtrip.unsorted
+          for f in "${FILES[@]}"; do
+            sha256sum "$f" >> manifest.sha256.roundtrip.unsorted
+          done
+          LC_ALL=C sort -k2 manifest.sha256.roundtrip.unsorted > manifest.sha256.roundtrip
+          rm -f manifest.sha256.roundtrip.unsorted
+          if ! diff -u manifest.sha256 manifest.sha256.roundtrip; then
+            echo "Round-trip manifest differs from published manifest" >&2
+            exit 1
+          fi
+          echo "Round-trip OK — ${#FILES[@]} files match published manifest byte-for-byte"
+          echo "ROUNDTRIP_FILE_COUNT=${#FILES[@]}" >> "$GITHUB_ENV"
+      - name: Append round-trip verification to workflow summary
+        if: always() && steps.upload-coverage.outcome == 'success'
+        run: |
+          {
+            echo ""
+            echo "### Artifact round-trip verification"
+            echo ""
+            if [ -n "${ROUNDTRIP_FILE_COUNT:-}" ]; then
+              echo "✅ Re-downloaded artifact and re-hashed **${ROUNDTRIP_FILE_COUNT}** files — bytes match the published \`manifest.sha256\`."
+            else
+              echo "❌ Round-trip verification failed — see the \"Re-hash downloaded artifact\" step log."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish coverage to workflow summary
+        if: always()
+        env:
+          ARTIFACT_URL: ${{ steps.upload-coverage.outputs.artifact-url }}
+        run: |
+          {
+            echo "## Redirect canonicalization coverage"
+            echo ""
+            if [ -f coverage/coverage-summary.json ]; then
+              echo "Per-file gate on \`src/lib/redirect-canonical.ts\` — 100% lines/functions/statements, ≥94% branches."
+              echo ""
+              echo "| Metric | Covered | Total | % |"
+              echo "|---|---:|---:|---:|"
+              node -e '
+                const s = require("./coverage/coverage-summary.json").total;
+                for (const k of ["statements","branches","functions","lines"]) {
+                  const { covered, total, pct } = s[k];
+                  console.log(`| ${k} | ${covered} | ${total} | ${pct}% |`);
+                }
+              '
+              echo ""
+            else
+              echo "_No coverage-summary.json was emitted — the test step likely failed before coverage finalized._"
+              echo ""
+            fi
+            if [ -n "$ARTIFACT_URL" ]; then
+              echo "📥 [Download full HTML report (zip)]($ARTIFACT_URL) — open \`index.html\` after extracting."
+            else
+              echo "_Artifact upload step did not produce a URL (artifact may be empty)._"
+            fi
+            if [ -f coverage/manifest.json ]; then
+              FILE_COUNT=$(node -e 'console.log(require("./coverage/manifest.json").fileCount)')
+              echo ""
+              echo "### Artifact manifest"
+              echo ""
+              echo "\`manifest.json\` + \`manifest.sha256\` are bundled in the artifact ($FILE_COUNT files indexed)."
+              echo "Verify completeness after extracting:"
+              echo ""
+              echo '```sh'
+              echo 'cd redirect-canonical-coverage && sha256sum -c manifest.sha256'
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+
+
+
+
+  # PR/build verification: prerender the site locally, run the on-disk sitemap
+  # validator (fails the build if any sitemap URL is missing canonical/og:url,
+  # is noindex, has duplicates, etc.), then re-verify canonicals over an
+  # HTTP server that mimics production clean-URL semantics.
+  prerender-check:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build (runs generate-sitemap → vite build → prerender → validate-sitemap)
+        run: bun run build
+
+      # Explicit re-run so PR status surfaces a dedicated "Validate sitemap"
+      # check. `bun run build` already invoked it, but this guarantees the
+      # check is visible and rerunnable from the PR UI.
+      - name: Validate sitemap (on-disk)
+        run: bun run validate:sitemap
+
+      - name: Serve dist with production-like clean URLs
+        run: |
+          bunx tsx scripts/serve-dist.ts 4319 &
+          echo $! > serve.pid
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:4319/ > /dev/null; then break; fi
+            sleep 1
+          done
+
+      - name: Verify prerendered canonicals over HTTP
+        run: bun run check:canonical --origin http://127.0.0.1:4319
+
+      - name: Stop static server
+        if: always()
+        run: |
+          if [ -f serve.pid ]; then kill "$(cat serve.pid)" || true; fi
+
+
+  # Production verification: scan the live site (scheduled + manual only).
+  live-check:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate canonical tags across live sitemap
+        run: bun run check:canonical ${{ github.event.inputs.sitemap || 'https://sade-il.com/sitemap.xml' }}

@@ -1,0 +1,60 @@
+name: Database permission tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: db-tests-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+
+
+jobs:
+  rls-permission-tests:
+    name: RLS & has_role permission tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Boots the full local Supabase stack (Postgres + auth roles
+      # anon / authenticated / service_role) and applies every migration in
+      # supabase/migrations in order.
+      - name: Start Supabase (applies all migrations)
+        run: supabase start -x studio,inbucket,imgproxy,edge-runtime,logflare,vector,pgadmin-schema-diff,migra
+
+
+      - name: Run permission tests
+        env:
+          # Default local Supabase Postgres connection string
+          DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          psql "$DB_URL" -v ON_ERROR_STOP=1 \
+            -f supabase/tests/has_role_permissions.test.sql
+
+      - name: Run RLS behavior tests (user_roles + has_role recursion guard)
+        env:
+          DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          psql "$DB_URL" -v ON_ERROR_STOP=1 \
+            -f supabase/tests/user_roles_rls_behavior.test.sql
+
+      - name: Run trigger-only function behavior tests
+        env:
+          DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          psql "$DB_URL" -v ON_ERROR_STOP=1 \
+            -f supabase/tests/trigger_only_functions_behavior.test.sql
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup

@@ -1,0 +1,688 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Sadetsky — fresh modern engineering: ink navy + electric teal + warm amber */
+    --background: 220 30% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 222 47% 11%;
+    --primary-foreground: 40 28% 96%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 40 28% 96%;
+
+    --muted: 220 20% 95%;
+    --muted-foreground: 220 10% 40%;
+
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --teal: 172 80% 40%;
+    --teal-foreground: 0 0% 100%;
+
+    --gold: 38 55% 58%;
+    --gold-foreground: 222 47% 11%;
+
+    --hero-paper: 45 34% 92%;
+    --hero-paper-wash: 42 28% 86%;
+    --hero-linework: 215 22% 24%;
+    --hero-yellow: 50 98% 55%;
+    --hero-blue: 199 92% 62%;
+    --hero-red: 358 78% 43%;
+    --hero-green: 148 35% 41%;
+    --hero-cream: 46 50% 96%;
+    --hero-mint: 166 86% 58%;
+    --hero-coral: 13 94% 61%;
+    --hero-title-base: 186 78% 28%;
+    --hero-title-on-yellow: 200 92% 38%;
+    --hero-title-on-blue: 51 100% 69%;
+    --hero-title-on-red: 176 82% 72%;
+    --hero-title-on-green: 48 95% 70%;
+
+    --whatsapp: 142 84% 44%;
+    --whatsapp-foreground: 0 0% 100%;
+    --whatsapp-glow: 142 90% 55%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 172 80% 40%;
+
+    --radius: 1rem;
+
+    --gradient-hero: radial-gradient(at 80% 0%, hsl(172 80% 40% / 0.35) 0%, transparent 50%),
+                     radial-gradient(at 0% 100%, hsl(24 95% 53% / 0.28) 0%, transparent 55%),
+                     linear-gradient(135deg, hsl(222 47% 9%) 0%, hsl(222 47% 13%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 30% 98%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(24 95% 53%) 0%, hsl(350 90% 60%) 100%);
+    --gradient-teal: linear-gradient(135deg, hsl(172 80% 40%) 0%, hsl(192 90% 45%) 100%);
+    --gradient-overlay: linear-gradient(180deg, hsla(222 47% 8% / 0.85) 0%, hsla(222 47% 11% / 0.55) 100%);
+
+    --shadow-card: 0 4px 24px -10px hsl(222 47% 11% / 0.12);
+    --shadow-elevated: 0 24px 60px -24px hsl(222 47% 11% / 0.35);
+    --shadow-accent: 0 12px 36px -12px hsl(24 95% 53% / 0.5);
+    --shadow-teal: 0 12px 36px -12px hsl(172 80% 40% / 0.5);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  /* Global keyboard focus — visible ring on every interactive element */
+  :focus-visible {
+    outline: 3px solid hsl(var(--accent));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  a:focus-visible, button:focus-visible,
+  input:focus-visible, select:focus-visible, textarea:focus-visible,
+  [role="button"]:focus-visible, [role="link"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid hsl(var(--accent));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px hsl(var(--accent) / 0.25);
+  }
+  /* Skip-to-content link — hidden until focused */
+  .skip-link {
+    position: fixed;
+    top: -100px;
+    right: 1rem;
+    z-index: 9999;
+    padding: 0.75rem 1.25rem;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-weight: 700;
+    border-radius: 0.5rem;
+    transition: top 0.2s ease-out;
+  }
+  .skip-link:focus { top: 1rem; }
+  .skip-link:focus ~ .skip-link:focus { top: 4.25rem; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  section[id] { scroll-margin-top: 6rem; }
+  @media (min-width: 1280px) { section[id] { scroll-margin-top: 7rem; } }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Assistant', 'Heebo', system-ui, sans-serif;
+
+    font-feature-settings: "kern";
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  :lang(en), [lang="en"] {
+    font-family: 'Barlow Condensed', 'Archivo Narrow', system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', 'Heebo', system-ui, sans-serif;
+    @apply font-bold tracking-tight;
+    letter-spacing: -0.01em;
+  }
+  /* Hebrew headings — Heebo handles RTL better than Oswald */
+  h1:lang(he), h2:lang(he), h3:lang(he), h4:lang(he), h5:lang(he), h6:lang(he),
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+    font-family: 'Heebo', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+  }
+
+  /* ───── Silk-thread gold dividers (luxury hairlines) ───── */
+  hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(
+      to right,
+      transparent 0%,
+      hsl(var(--gold) / 0.15) 12%,
+      hsl(var(--gold) / 0.85) 50%,
+      hsl(var(--gold) / 0.15) 88%,
+      transparent 100%
+    );
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.04);
+    margin: 1.5rem 0;
+  }
+}
+
+/* ───── Reusable: silk-gold hairline + inked vivid text ───── */
+@layer utilities {
+  .silk-divider {
+    height: 1px;
+    background-image: linear-gradient(
+      to right,
+      transparent 0%,
+      hsl(var(--gold) / 0.15) 12%,
+      hsl(var(--gold) / 0.9) 50%,
+      hsl(var(--gold) / 0.15) 88%,
+      transparent 100%
+    );
+  }
+  .silk-divider-vertical {
+    width: 1px;
+    background-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      hsl(var(--gold) / 0.15) 12%,
+      hsl(var(--gold) / 0.9) 50%,
+      hsl(var(--gold) / 0.15) 88%,
+      transparent 100%
+    );
+  }
+  /* Thin dark ink-shadow that adds depth to vivid colored text */
+  .text-shadow-ink {
+    text-shadow: 0 1px 1px hsl(222 47% 6% / 0.55), 0 0 1px hsl(222 47% 6% / 0.35);
+  }
+  .text-shadow-ink-soft {
+    text-shadow: 0 1px 0 hsl(222 47% 6% / 0.35);
+  }
+  /* Auto-apply subtle ink shadow to vivid color helpers across the site */
+  .text-accent, .text-gold, .text-teal, .text-destructive, .text-whatsapp {
+    text-shadow: 0 1px 1px hsl(222 47% 6% / 0.4);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Typography System — Sadetsky Engineering
+   Use these classes site-wide for consistency.
+   ───────────────────────────────────────────── */
+@layer components {
+  /* ───── Modular type scale (1.25 ratio · 16px base) ─────
+     caption 0.8 · body 1 · lead 1.25 · h3 1.563 · h2 1.953 · h1 2.441 · display 3.815
+     Vivid-color tokens get an inked shadow to add depth. */
+
+  /* Display / hero — industrial condensed */
+  .t-display {
+    font-family: 'Heebo', 'Oswald', system-ui, sans-serif;
+    @apply font-black leading-[0.92] text-balance;
+    font-size: clamp(2.441rem, 5.5vw, 3.815rem);
+    letter-spacing: -0.035em;
+    margin-bottom: 0.75em;
+  }
+  /* Section headings (H1 in-page) */
+  .t-h1 {
+    font-family: 'Heebo', 'Oswald', system-ui, sans-serif;
+    @apply font-black leading-[1.05] text-balance;
+    font-size: clamp(2.25rem, 4.2vw, 3.5rem);
+    letter-spacing: -0.025em;
+    margin-bottom: 0.6em;
+  }
+  /* Sub-section (H2) */
+  .t-h2 {
+    font-family: 'Heebo', 'Oswald', system-ui, sans-serif;
+    @apply font-bold leading-[1.15];
+    font-size: clamp(1.75rem, 2.6vw, 2.75rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5em;
+  }
+  /* Card / item titles (H3) */
+  .t-h3 {
+    font-family: 'Heebo', 'Oswald', system-ui, sans-serif;
+    @apply font-bold leading-snug;
+    font-size: clamp(1.4rem, 1.8vw, 1.85rem);
+    letter-spacing: -0.012em;
+    margin-bottom: 0.4em;
+  }
+  /* Lead paragraph */
+  .t-lead {
+    font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+    @apply font-light leading-[1.55] text-muted-foreground;
+    font-size: clamp(1.25rem, 1.55vw, 1.5rem);
+    letter-spacing: 0.005em;
+    margin-bottom: 1em;
+  }
+  /* Body text */
+  .t-body {
+    font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+    @apply leading-[1.65] font-normal;
+    font-size: clamp(1.0625rem, 1.05vw, 1.1875rem);
+    letter-spacing: 0.005em;
+  }
+  /* Small / caption */
+  .t-small {
+    font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+    @apply leading-[1.5] text-muted-foreground font-normal;
+    font-size: clamp(0.9rem, 0.85vw, 1.0625rem);
+  }
+  /* Eyebrow / overline — industrial condensed uppercase */
+  .t-eyebrow {
+    font-family: 'Archivo Narrow', 'Barlow Condensed', ui-monospace, monospace;
+    @apply font-bold uppercase text-accent;
+    font-size: clamp(0.875rem, 0.95vw, 1.0625rem);
+    letter-spacing: 0.32em;
+  }
+  /* Tag / pill label */
+  .t-tag {
+    font-family: 'Barlow Condensed', 'Archivo Narrow', ui-monospace, monospace;
+    @apply font-black uppercase;
+    font-size: clamp(0.8125rem, 0.85vw, 0.9375rem);
+    letter-spacing: 0.22em;
+  }
+  /* Mono technical label (M.R, coords, units) */
+  .t-mono {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    @apply uppercase font-medium;
+    font-size: clamp(0.8125rem, 0.85vw, 0.9375rem);
+    letter-spacing: 0.2em;
+  }
+  /* Latin label — wide industrial */
+  .t-label-en {
+    font-family: 'Barlow Condensed', 'Archivo Narrow', system-ui, sans-serif;
+    @apply uppercase font-semibold;
+    letter-spacing: 0.28em;
+  }
+  /* Serif accent — kept for editorial flourish */
+  .t-serif {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    @apply italic font-medium;
+    letter-spacing: 0;
+  }
+  /* Display headline — punk hero (container only; child sizes via t-punk-* tokens) */
+  .t-display-punk {
+    font-family: 'Heebo', 'Assistant', 'Arial Hebrew', system-ui, sans-serif;
+    @apply font-black;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+  }
+  /* Hero punk headline — primary row ("הנדסה / בלי") */
+  .t-punk-primary {
+    font-size: clamp(2.25rem, 6vw, 4.75rem);
+  }
+  /* Hero punk headline — strike row ("סתם עוד מהנדס") */
+  .t-punk-strike {
+    font-size: clamp(1.25rem, 2.6vw, 2rem);
+    @apply uppercase;
+    letter-spacing: 0.04em;
+    margin-top: clamp(0.25rem, 0.6vw, 0.5rem);
+  }
+  /* Hero punk headline — closer row ("קונסטרוקציה.") */
+  .t-punk-closer {
+    font-size: clamp(2.5rem, 6.5vw, 5rem);
+    line-height: 0.9;
+    margin-top: clamp(0.5rem, 0.9vw, 0.75rem);
+  }
+  /* Brand glyph — square logo monogram */
+  .t-brand-glyph {
+    font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+    @apply font-black leading-none;
+    letter-spacing: -0.02em;
+  }
+
+  /* ───── Hero — dedicated micro-typography tokens ───── */
+  /* Skewed M.R chip badge text */
+  .t-hero-chip {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    @apply font-black uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+  }
+  /* Latin brand wordmark beside chip ("SADETSKY / EST. 2018") */
+  .t-hero-brand {
+    font-family: 'Barlow Condensed', 'Archivo Narrow', system-ui, sans-serif;
+    @apply uppercase font-semibold;
+    font-size: clamp(0.6875rem, 0.9vw, 0.75rem);
+    letter-spacing: 0.28em;
+  }
+  /* Latin eyebrow above headline ("STRUCTURAL / ENGINEERING / DESIGN") */
+  .t-hero-eyebrow {
+    font-family: 'Barlow Condensed', 'Archivo Narrow', system-ui, sans-serif;
+    @apply uppercase font-light whitespace-nowrap;
+    font-size: clamp(0.5625rem, 0.85vw, 0.75rem);
+    letter-spacing: clamp(0.32em, 0.55vw, 0.6em);
+    margin-bottom: clamp(0.75rem, 1.4vw, 1.25rem);
+  }
+  /* Latin counter-line below headline ("cut the bullshit · just load paths") */
+  .t-hero-counter {
+    font-family: 'Barlow Condensed', 'Archivo Narrow', system-ui, sans-serif;
+    @apply uppercase font-bold;
+    font-size: clamp(0.875rem, 1.2vw, 1.125rem);
+    letter-spacing: clamp(0.18em, 0.3vw, 0.22em);
+  }
+  /* Hebrew tagline between rules ("מדויק בחישוב · יצירתי בפתרון · אחראי בביצוע") */
+  .t-hero-tagline {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    @apply uppercase font-medium;
+    font-size: 0.6875rem;
+    letter-spacing: 0.3em;
+  }
+  /* Rotating slide kicker label */
+  .t-hero-kicker {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    @apply uppercase font-black;
+    font-size: 0.625rem;
+    letter-spacing: 0.22em;
+  }
+  /* Punk slash accent inside headline ("/" separator) */
+  .t-punk-slash {
+    font-size: 0.85em;
+  }
+  /* Signature DESIGN word over orange — engineering meets aesthetics.
+     Hairline outline separating the white letterforms from the orange field. */
+  .t-design-mark {
+    position: relative;
+    -webkit-text-stroke: 0.4px hsl(222 47% 6% / 0.55);
+    text-shadow:
+      0 0 0.5px hsl(0 0% 100% / 0.9),
+      0 1px 0 hsl(222 47% 6% / 0.35),
+      0 0 6px hsl(24 95% 53% / 0.35);
+    letter-spacing: 0.22em;
+  }
+  .t-design-mark::before,
+  .t-design-mark::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.7), transparent);
+    pointer-events: none;
+  }
+  .t-design-mark::before { top: 1px; }
+  .t-design-mark::after  { bottom: 1px; }
+  /* Hero feature chip label ("תכנון קונסטרוקציה" etc.) */
+  .t-hero-chip-label {
+    font-family: 'Heebo', 'Assistant', system-ui, sans-serif;
+    @apply font-normal;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  /* ───── Hero — dedicated spacing tokens ───── */
+  /* Outer container — horizontal centering + vertical breathing room */
+  .t-hero-container { @apply mx-auto py-32; }
+  /* Top badge row (chip + brand wordmark) — inline gap + bottom rhythm */
+  .t-hero-badge-row { @apply gap-3 mb-8; }
+  /* Inner padding for skewed M.R chip */
+  .t-hero-chip-pad { @apply px-3 py-1.5; }
+  /* Inline accent gap (slash "/" and middot "·" separators) */
+  .t-hero-accent-gap { @apply mx-2 sm:mx-3; }
+  /* Vertical rhythm — stack scale (top-margin between hero blocks) */
+  .t-hero-stack-counter   { @apply mt-4 sm:mt-5; }   /* counter-line below headline */
+  .t-hero-stack-tagline   { @apply mt-7; }            /* tagline rule row */
+  .t-hero-stack-lead      { @apply mt-6; }            /* lead paragraph */
+  .t-hero-stack-benefits  { @apply mt-8; }            /* rotating benefits card */
+  .t-hero-stack-cta       { @apply mt-10; }           /* CTA buttons row */
+  .t-hero-stack-chips     { @apply mt-14; }           /* feature chips grid */
+  .t-hero-stack-kicker    { @apply mb-1; }            /* kicker → body inside slide */
+  /* Horizontal rhythm — flex/grid gaps */
+  .t-hero-row-tagline { @apply gap-3; }
+  .t-hero-row-cta     { @apply gap-3; }
+  .t-hero-row-chips   { @apply gap-3; }
+  /* Slide card paddings */
+  .t-hero-slide-pad { @apply gap-4 p-4 sm:p-5; }
+  /* Pagination dots row */
+  .t-hero-dots-row { @apply gap-1.5 px-5 pb-3; }
+  /* Feature chip card padding */
+  .t-hero-chip-card-pad { @apply gap-2 px-3 py-2.5; }
+
+  /* ───── About — typography tokens ───── */
+  .t-about-pill-text { @apply text-sm; }
+  .t-about-stat      { @apply text-sm font-semibold leading-snug; }
+  .t-about-prose     { @apply text-lg leading-relaxed text-muted-foreground; }
+  .t-about-card-desc { @apply text-sm leading-relaxed text-muted-foreground; }
+  .t-about-card-foot { @apply text-xs leading-relaxed text-muted-foreground; }
+  .t-about-quote     { @apply leading-relaxed; }
+
+  /* ───── About — spacing tokens ───── */
+  .t-about-section          { @apply py-24 lg:py-32; }
+  .t-about-banner-mb        { @apply mb-16 lg:mb-20; }
+  .t-about-banner-pad       { @apply mx-auto py-12 sm:py-16 gap-8; }
+  .t-about-container        { @apply mx-auto; }
+  .t-about-pill             { @apply gap-2 px-4 py-2; }
+  .t-about-pill-mb          { @apply mb-5; }
+  .t-about-stack-tight      { @apply mt-3; }     /* lead under h2 */
+  .t-about-stack-sm         { @apply mt-4; }     /* h1 / continuation paragraphs */
+  .t-about-stack-md         { @apply mt-5; }     /* first long paragraph */
+  .t-about-stack-lg         { @apply mt-6; }     /* process row */
+  .t-about-stack-xl         { @apply mt-8; }     /* expertise grid / list / cta */
+  .t-about-stack-2xl        { @apply mt-10; }    /* quote block */
+  .t-about-process-grid     { @apply gap-3; }
+  .t-about-process-pad      { @apply gap-3 px-4 py-3; }
+  .t-about-card-pad         { @apply p-5; }
+  .t-about-card-row         { @apply gap-3; }
+  .t-about-card-foot-stack  { @apply mt-3; }
+  .t-about-grid             { @apply gap-3; }
+  .t-about-expertise-pad    { @apply p-4; }
+  .t-about-expertise-head   { @apply gap-3 mb-2; }
+  .t-about-list             { @apply space-y-3; }
+  .t-about-list-row         { @apply gap-3; }
+  .t-about-list-icon-offset { @apply mt-0.5; }
+  .t-about-quote-pad        { @apply p-6; }
+  .t-about-quote-stack      { @apply mt-3; }
+  .t-about-cta-row          { @apply gap-3; }
+
+  /* ───── Hero — extra body token (slide copy) ───── */
+  .t-hero-slide-body { @apply text-base leading-snug; }
+
+  /* ───── FloatingWhatsApp — tokens ───── */
+  .t-fab-pos     { @apply bottom-5 left-5; }
+  .t-fab-row     { @apply gap-2 pr-3.5 pl-4 py-2.5; }
+  .t-fab-label   { @apply text-[13px] font-semibold; }
+  .t-fab-icon    { @apply w-[18px] h-[18px]; }
+
+  /* ───── NotFound — tokens ───── */
+  .t-404-stack   { @apply mb-4; }
+  .t-404-title   { @apply text-4xl font-bold; }
+  .t-404-lead    { @apply mb-4 text-xl; }
+
+  /* ───── Disclaimer — tokens ───── */
+  .t-disc-section { @apply py-16; }
+  .t-disc-card    { @apply p-8 sm:p-10; }
+  .t-disc-row     { @apply gap-4; }
+  .t-disc-icon-wrap { @apply w-12 h-12; }
+  .t-disc-icon    { @apply w-6 h-6; }
+  .t-disc-title   { @apply mb-3; }
+  .t-disc-body    { @apply leading-relaxed; }
+
+  /* ───── Services section tokens ───── */
+  .t-svc-section    { @apply py-24 lg:py-32; }
+  .t-svc-header     { @apply mb-14; }
+  .t-svc-title-gap  { @apply mt-4; }
+  .t-svc-lead-gap   { @apply mt-5; }
+  .t-svc-grid       { @apply gap-4 sm:gap-5; }
+  .t-svc-card       { @apply p-5 sm:p-6; }
+  .t-svc-card-edge  { @apply right-5 left-5 sm:right-6 sm:left-6; }
+  .t-svc-icon-wrap  { @apply w-11 h-11 sm:w-12 sm:h-12 mb-4; }
+  .t-svc-icon       { @apply w-5 h-5 sm:w-6 sm:h-6; }
+  .t-svc-card-title { @apply mb-2 leading-snug; }
+  .t-svc-card-body  { @apply leading-relaxed; }
+}
+
+/* RTL fine-tuning — Hebrew benefits from slightly looser tracking */
+[dir="rtl"] .t-eyebrow,
+[dir="rtl"] .t-tag {
+  letter-spacing: 0.18em;
+}
+[dir="rtl"] .t-mono {
+  letter-spacing: 0.14em;
+}
+
+/* Reduced motion — disable all hero animations/transitions; keep static decorative transforms */
+@media (prefers-reduced-motion: reduce) {
+  #home,
+  #home * {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+  /* Force entrance elements to their final visible state */
+  #home .animate-fade-up {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  /* Accent letters: keep their color, drop motion-only transforms/filters */
+  #home .hero-accent-letter {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  /* Note: static decorative transforms on slash (-skew-x-6) and strike-line
+     (-rotate-2) live on their own elements (without .animate-fade-up or
+     .hero-accent-letter), so the rules above do NOT override them. */
+}
+
+
+@layer utilities {
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-card { background: var(--gradient-card); }
+  .bg-gradient-accent { background: var(--gradient-accent); }
+  .bg-gradient-teal { background: var(--gradient-teal); }
+  .bg-gradient-overlay { background: var(--gradient-overlay); }
+
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+  .shadow-accent { box-shadow: var(--shadow-accent); }
+  .shadow-teal { box-shadow: var(--shadow-teal); }
+
+  .transition-smooth { transition: var(--transition-smooth); }
+  .text-balance { text-wrap: balance; }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.06) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+/* === Hero car light streaks — red taillights crossing the bridge deck === */
+.hero-light-streak {
+  position: absolute;
+  top: var(--y, 47%);
+  left: var(--start-x, -20%);
+  width: var(--w, 28%);
+  height: var(--h, 1.5px);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0 95% 48% / 0) 10%,
+    hsl(0 95% 48% / 0.5) 45%,
+    hsl(0 100% 60% / 0.95) 62%,
+    hsl(15 100% 68% / 0.4) 82%,
+    transparent 100%
+  );
+  filter: blur(1px) drop-shadow(0 0 8px hsl(0 95% 45% / 0.7))
+    drop-shadow(0 0 18px hsl(0 100% 38% / 0.4));
+  transform: translateX(0) skewX(var(--skew, -3deg));
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: hero-streak var(--dur, 10s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  pointer-events: none;
+}
+/* left bridge deck — slopes down toward center, two cars passing */
+.hero-light-streak--1 { --y: 46%; --start-x: -15%; --w: 30%; --dur: 11s; --delay: 0s;   --skew: 4deg; --travel: 180%; }
+.hero-light-streak--2 { --y: 49%; --start-x: -15%; --w: 22%; --dur: 14s; --delay: 5s;   --skew: 4deg; --travel: 200%; --h: 1px; }
+/* right bridge deck — slopes the opposite way */
+.hero-light-streak--3 { --y: 43%; --start-x: 70%;  --w: 26%; --dur: 12s; --delay: 7.5s; --skew: -4deg; --travel: 90%; --h: 1.25px; }
+
+@keyframes hero-streak {
+  0%   { transform: translateX(0) skewX(var(--skew, -3deg));               opacity: 0; }
+  12%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { transform: translateX(var(--travel, 200%)) skewX(var(--skew, -3deg)); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-light-streak { animation: none; opacity: 0; }
+}
+
+/* ─────────────────────────────────────────────
+   Accessibility widget — global modes
+   ───────────────────────────────────────────── */
+/* High contrast — boost foreground/background separation */
+html.a11y-high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --muted: 0 0% 92%;
+  --muted-foreground: 0 0% 10%;
+  --border: 0 0% 0%;
+  --primary: 0 0% 0%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 24 100% 40%;
+  --accent-foreground: 0 0% 100%;
+  --ring: 24 100% 40%;
+}
+html.a11y-high-contrast * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+html.a11y-high-contrast img,
+html.a11y-high-contrast video {
+  filter: contrast(1.15);
+}
+
+/* Grayscale — desaturate the entire page */
+html.a11y-grayscale body {
+  filter: grayscale(1);
+}
+
+/* Underline links — force visible underlines on every anchor/button-link */
+html.a11y-underline-links a,
+html.a11y-underline-links button[role="link"] {
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+  text-decoration-thickness: 2px !important;
+}
+
+/* Readable font — switch to a wider, simpler sans-serif */
+html.a11y-readable-font,
+html.a11y-readable-font body,
+html.a11y-readable-font h1,
+html.a11y-readable-font h2,
+html.a11y-readable-font h3,
+html.a11y-readable-font h4,
+html.a11y-readable-font h5,
+html.a11y-readable-font h6,
+html.a11y-readable-font p,
+html.a11y-readable-font span,
+html.a11y-readable-font a,
+html.a11y-readable-font button,
+html.a11y-readable-font li,
+html.a11y-readable-font input,
+html.a11y-readable-font textarea {
+  font-family: 'Assistant', 'Heebo', Arial, system-ui, sans-serif !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.7 !important;
+}
+
+/* Pause animations — kill all motion */
+html.a11y-pause-animations *,
+html.a11y-pause-animations *::before,
+html.a11y-pause-animations *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+}
+html.a11y-pause-animations video {
+  /* let users still play media manually if desired */
+}
