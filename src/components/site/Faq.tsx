@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { track } from "@/lib/analytics";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const faqs = [
   {
     q: "מתי צריך קונסטרוקטור?",
