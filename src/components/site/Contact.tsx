@@ -372,6 +372,7 @@ export const Contact = () => {
               <Input
                 id="name" name="name" maxLength={100} className={`mt-2 ${errClass("name")}`}
                 placeholder="ישראל ישראלי"
+                aria-required
                 aria-invalid={!!errors.name}
                 aria-describedby={errors.name ? "name-error" : undefined}
                 onChange={() => clearError("name")}
@@ -383,6 +384,7 @@ export const Contact = () => {
               <Input
                 id="phone" name="phone" type="tel" maxLength={20} className={`mt-2 ${errClass("phone")}`}
                 placeholder="050-0000000" dir="ltr"
+                aria-required
                 aria-invalid={!!errors.phone}
                 aria-describedby={errors.phone ? "phone-error" : undefined}
                 onChange={() => clearError("phone")}
@@ -429,6 +431,7 @@ export const Contact = () => {
                 <SelectTrigger
                   id="type"
                   className={`mt-2 ${errClass("type")}`}
+                  aria-required
                   aria-invalid={!!errors.type}
                   aria-describedby={errors.type ? "type-error" : undefined}
                 >
@@ -452,6 +455,7 @@ export const Contact = () => {
               <Textarea
                 id="desc" name="desc" maxLength={1500} rows={5} className={`mt-2 ${errClass("desc")}`}
                 placeholder="ספרו על הנכס, מה נדרש ומה דחיפות הפנייה..."
+                aria-required
                 aria-invalid={!!errors.desc}
                 aria-describedby={errors.desc ? "desc-error" : undefined}
                 onChange={() => clearError("desc")}

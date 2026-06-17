@@ -152,6 +152,7 @@ export const Header = () => {
             <LanguageSwitcher />
           </div>
           <a href={waLink(WHATSAPP_TEXT)} onClick={(e) => openWhatsApp(e, WHATSAPP_TEXT)} aria-label="WhatsApp"
+            target="_blank" rel="noopener noreferrer"
             className="hidden 2xl:grid w-9 h-9 xl:w-10 xl:h-10 place-items-center text-primary-foreground hover:text-whatsapp hover:bg-primary-foreground/10 transition-smooth">
             <MessageCircle className="w-4 h-4" />
           </a>

@@ -47,10 +47,10 @@ const ComingSoonPage = ({
         <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content={url} />
         <meta property="og:locale" content={lang === "ru" ? "ru_RU" : lang === "fr" ? "fr_FR" : "en_US"} />
+        {/* This page is noindex; hreflang alternates to noindex URLs are invalid
+            and dropped by Google. Keep only he + x-default until real translated
+            pages ship. */}
         <link rel="alternate" hrefLang="he" href="https://sade-il.com/" />
-        <link rel="alternate" hrefLang="ru" href="https://sade-il.com/ru" />
-        <link rel="alternate" hrefLang="en" href="https://sade-il.com/en" />
-        <link rel="alternate" hrefLang="fr" href="https://sade-il.com/fr" />
         <link rel="alternate" hrefLang="x-default" href="https://sade-il.com/" />
       </Helmet>
       <header className="border-b border-gold/20 backdrop-blur bg-primary/40">

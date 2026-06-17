@@ -79,10 +79,12 @@ const Index = () => {
         description={META.description}
         path="/"
         alternates={[
+          // Only Hebrew is a live, indexable language. ru/en/fr are noindex
+          // "coming soon" stubs (LangComingSoon.tsx) — advertising hreflang to
+          // noindex URLs is an invalid signal Google drops. Re-add per-language
+          // alternates (here + in the sitemap + prerender) only when the
+          // translated pages are genuinely indexable. Matches generate-sitemap.ts.
           { hrefLang: "he", href: "https://sade-il.com/" },
-          { hrefLang: "ru", href: "https://sade-il.com/ru" },
-          { hrefLang: "en", href: "https://sade-il.com/en" },
-          { hrefLang: "fr", href: "https://sade-il.com/fr" },
           { hrefLang: "x-default", href: "https://sade-il.com/" },
         ]}
       />

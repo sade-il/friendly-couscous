@@ -5,17 +5,29 @@ import { Footer } from "@/components/site/Footer";
 import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
 import { AccessibilityWidget } from "@/components/site/AccessibilityWidget";
 import { EngineeringGridBackground } from "@/components/site/EngineeringGridBackground";
+import { Helmet } from "react-helmet-async";
 import { Seo } from "@/components/site/Seo";
 import { AREAS } from "@/data/areas";
+import { breadcrumbSchema } from "@/lib/schema";
 
 export default function AreasIndex() {
   return (
     <div className="min-h-screen bg-background">
       <Seo
         title="אזורי שירות — קונסטרוקטור במרכז הארץ | א. סדצקי הנדסה"
-        description="קונסטרוקטור ומהנדס מבנים במרכז הארץ: ראשון לציון, תל אביב, חולון, בת ים, רחובות, נס ציונה, פתח תקווה, רמת גן, גבעתיים ועוד. ליווי מול הוועדה המקומית."
+        description={`קונסטרוקטור ומהנדס מבנים במרכז הארץ: ${AREAS.map((a) => a.city).join(", ")}. ליווי מול הוועדה המקומית.`}
         path="/areas"
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(
+            breadcrumbSchema([
+              { name: "בית", url: "https://sade-il.com/" },
+              { name: "אזורי שירות", url: "https://sade-il.com/areas" },
+            ]),
+          )}
+        </script>
+      </Helmet>
       <EngineeringGridBackground />
       <a href="#main-content" className="skip-link">דלג לתוכן הראשי</a>
       <Header />

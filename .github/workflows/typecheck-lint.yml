@@ -1,0 +1,28 @@
+name: Typecheck & Lint
+
+# Additive verification gate: catches TypeScript type errors and ESLint
+# regressions on every PR/push. Mirrors the bun-based setup used by
+# canonical.yml / db-tests.yml. Deployment itself is handled by Lovable —
+# CI here is verification-only.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  typecheck-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Typecheck (no emit)
+        run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: Lint
+        run: bunx eslint .

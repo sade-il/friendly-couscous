@@ -30,7 +30,7 @@ export const LanguageSwitcher = ({ variant = "header" }: { variant?: "header" | 
             to={l.path}
             onClick={() => track("language_switch", { from: current, to: l.code })}
             aria-current={isActive ? "page" : undefined}
-            className={`t-mono text-[10px] tracking-[0.18em] px-1.5 py-1 transition-smooth ${
+            className={`t-mono text-[10px] tracking-[0.18em] px-1.5 py-1 inline-flex items-center justify-center min-w-[44px] min-h-[44px] transition-smooth ${
               isActive
                 ? "text-gold border-b border-gold"
                 : "text-primary-foreground/60 hover:text-gold border-b border-transparent"
