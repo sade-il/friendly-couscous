@@ -16,6 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # The dev server (playwright webServer = "npm run dev") triggers the
+      # predev hook `bunx tsx scripts/generate-sitemap.ts`, so bun must be on
+      # PATH or the webServer exits 127 and every spec fails. (Install stays npm.)
+      - name: Setup Bun (for predev/prebuild bunx hooks)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

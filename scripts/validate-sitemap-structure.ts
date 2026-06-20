@@ -79,6 +79,14 @@ async function main() {
   if (routeMatches.length === 0) {
     fail("could not find any ROUTES path entries in scripts/generate-sitemap.ts");
   }
+  // Area detail pages are generated dynamically (`AREA_SLUGS.map()` → backtick
+  // template-literal paths), which the quoted-string regex above cannot see.
+  // Expand them from the AREA_SLUGS list so the drift check reflects reality.
+  const areaSlugs = (() => {
+    const block = gen.match(/AREA_SLUGS\s*=\s*\[([\s\S]*?)\]/);
+    return block ? [...block[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]) : [];
+  })();
+  for (const slug of areaSlugs) routeMatches.push(`/areas/${slug}`);
   const expected = new Set(routeMatches.map((p) => `${BASE_URL}${encodePath(p)}`));
   const actual = new Set(urls.map((u) => u.loc).filter(Boolean) as string[]);
 
@@ -131,6 +139,14 @@ async function main() {
     }
     arr.push(resolved);
     canonByPath.set(p, arr);
+  }
+
+  // prerender builds the same area detail canonicals dynamically (backtick
+  // template in a `.map()` over tuples) — invisible to the block regex above.
+  // Expand them from the shared AREA_SLUGS list parsed from generate-sitemap.ts.
+  for (const slug of areaSlugs) {
+    const p = `/areas/${slug}`;
+    canonByPath.set(p, [...(canonByPath.get(p) ?? []), `${BASE_URL}/areas/${slug}`]);
   }
 
   for (const { loc } of urls) {
