@@ -16,7 +16,7 @@ const ORIENTATIONS = [
   { name: "landscape", width: 844, height: 390 },
 ] as const;
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const openMenu = async (page: Page) => {

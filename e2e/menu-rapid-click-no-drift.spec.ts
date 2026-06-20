@@ -6,7 +6,7 @@ import { test, expect, Page } from "@playwright/test";
  * no half-finished animation from a previous click winning the race.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const headerBottom = (page: Page) =>

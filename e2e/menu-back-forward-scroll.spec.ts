@@ -7,7 +7,7 @@ import { test, expect, Page } from "@playwright/test";
  * prefers-reduced-motion: reduce.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const headerBottom = (page: Page) =>

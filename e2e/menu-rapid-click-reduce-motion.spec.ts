@@ -7,7 +7,7 @@ import { test, expect, Page } from "@playwright/test";
  * click. Verified for both mobile menu and desktop nav.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const headerBottom = (page: Page) =>

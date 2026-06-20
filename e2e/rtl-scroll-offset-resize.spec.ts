@@ -55,7 +55,7 @@ const navigateToSection = async (page: Page, label: string, width: number) => {
   // xl breakpoint is 1280 in tailwind defaults; in this project the mobile
   // menu toggle is shown below xl. For 360–1024 the mobile menu is always used.
   if (width < 1280) {
-    const toggle = page.getByRole("button", { name: "תפריט" });
+    const toggle = page.getByRole("button", { name: "תפריט", exact: true });
     await toggle.click();
     const nav = page.locator("#mobile-nav");
     await expect(nav).toBeVisible({ timeout: 3000 });

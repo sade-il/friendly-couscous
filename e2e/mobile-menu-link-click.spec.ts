@@ -8,7 +8,7 @@ import { test, expect, Page } from "@playwright/test";
  *     or on/inside the target section — never lost on <body>.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const openMenu = async (page: Page) => {

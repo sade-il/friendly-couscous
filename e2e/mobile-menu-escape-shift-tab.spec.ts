@@ -7,7 +7,7 @@ import { test, expect, Page } from "@playwright/test";
  * link), and never stay stuck on the toggle or jump back into menu links.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const focusedInfo = (page: Page) =>

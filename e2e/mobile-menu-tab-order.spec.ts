@@ -20,7 +20,7 @@ const summary = (page: Page) =>
   page.locator('[aria-labelledby="error-summary-title"]');
 
 const menuButton = (page: Page) =>
-  page.getByRole("button", { name: "תפריט" });
+  page.getByRole("button", { name: "תפריט", exact: true });
 
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 

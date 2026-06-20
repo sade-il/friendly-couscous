@@ -12,7 +12,7 @@ const SECTIONS = [
   { label: "צור קשר", id: "contact" },
 ] as const;
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const openMenu = async (page: Page) => {
