@@ -180,7 +180,7 @@ BEGIN
   -- INSERT should be silently filtered (0 rows) or rejected.
   BEGIN
     INSERT INTO public.user_roles (user_id, role)
-    VALUES (:user_id::uuid, 'admin');
+    VALUES (auth.uid(), 'admin');
     GET DIAGNOSTICS rows_affected = ROW_COUNT;
     PERFORM pg_temp.assert(rows_affected = 0,
       'regular user must NOT be able to grant themselves admin via INSERT');

@@ -90,6 +90,37 @@ export default function InteriorChanges() {
     })),
   };
 
+  // Service + BreadcrumbList to match the sibling service pages (Mamad,
+  // BuildingReinforcement, PergolaApproval) which all carry these nodes.
+  const serviceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    serviceType: "פתיחת פתח והסרת קיר נושא",
+    name: "אישור מהנדס לפתיחת פתח והסרת קיר נושא",
+    description: META.description,
+    areaServed: ["ראשון לציון", "תל אביב", "מרכז", "ישראל"],
+    provider: {
+      "@type": "ProfessionalService",
+      name: "א. סדצקי הנדסה וייעוץ",
+      url: "https://sade-il.com",
+      telephone: "+972524209183",
+    },
+  };
+
+  const breadcrumbsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "דף הבית", item: "https://sade-il.com/" },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "פתיחת פתח והסרת קיר",
+        item: "https://sade-il.com/services/interior-changes",
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Seo
@@ -100,6 +131,8 @@ export default function InteriorChanges() {
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(serviceJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbsJsonLd)}</script>
       </Helmet>
       <EngineeringGridBackground />
       <a href="#main-content" className="skip-link">דלג לתוכן הראשי</a>

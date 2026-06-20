@@ -19,8 +19,15 @@
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+// Pure, React-free schema objects shared with src/components/site/Seo.tsx.
+// RELATIVE import on purpose — tsx does not resolve the "@/" alias.
+import { businessSchema, breadcrumbSchema } from "../src/lib/schema";
+import { AREAS } from "../src/data/areas";
 
 const SITE = "https://sade-il.com";
+
+/** All served cities, single-sourced from AREAS (keeps /areas copy in sync with routes). */
+const AREA_CITIES = AREAS.map((a) => a.city).join(", ");
 
 type RouteMeta = {
   /** Path beginning with "/". Used for output file location. */
@@ -30,6 +37,10 @@ type RouteMeta = {
   title: string;
   description: string;
   ogType?: "website" | "article";
+  /** Short breadcrumb label (the last crumb after "בית"). Omit for home. */
+  crumb?: string;
+  /** Extra per-route JSON-LD nodes stamped into the static head. */
+  jsonLd?: Record<string, unknown>[];
 };
 
 const ROUTES: RouteMeta[] = [
@@ -46,6 +57,7 @@ const ROUTES: RouteMeta[] = [
     title: "פרויקטים נבחרים — קונסטרוקטור ותכנון שלד | א. סדצקי",
     description:
       "גלריית פרויקטים אמיתיים: תכנון קונסטרוקציה, פרגולות, מבנים מסוכנים, חיזוקים, בריכות וחוות דעת — דוגמאות ליווי הנדסי מקצה לקצה.",
+    crumb: "פרויקטים",
   },
   {
     path: "/services/pergola-approval",
@@ -54,6 +66,7 @@ const ROUTES: RouteMeta[] = [
     description:
       "פרגולה עד 50 מ״ר פטורה מהיתר — אך מחייבת דיווח לרשות תוך 45 יום ואישור מהנדס על עיגון ויציבות לפי ת״י 414. אישור חתום, ראשל״צ והמרכז.",
     ogType: "article",
+    crumb: "אישור פרגולה",
   },
   {
     path: "/services/interior-changes",
@@ -61,6 +74,7 @@ const ROUTES: RouteMeta[] = [
     title: "אישור מהנדס לפתיחת פתח והסרת קיר נושא | א. סדצקי",
     description:
       "שוקלים לפתוח פתח או להסיר קיר נושא? קונסטרוקטור בודק, מחשב חיזוקים וחותם. אל תבצעו ללא אישור — דברו איתנו.",
+    crumb: "פתיחת פתח והסרת קיר",
   },
   {
     path: "/services/building-reinforcement",
@@ -69,6 +83,7 @@ const ROUTES: RouteMeta[] = [
     description:
       "תכנון חיזוקים למבנים קיימים: יסודות, עמודים וקירות נושאים, חיזוק לרעידות אדמה (תמ״א 38), תוספות קומות ושיפוץ מבנים מסוכנים. ראשל״צ והמרכז.",
     ogType: "article",
+    crumb: "חיזוק מבנים",
   },
   {
     path: "/services/mamad",
@@ -77,6 +92,7 @@ const ROUTES: RouteMeta[] = [
     description:
       "תכנון ממ״ד דירתי וקומתי: בדיקת היתכנות, חישוב קונסטרוקטיבי לפי תקנות הג״א, תכניות חתומות והגשה לפיקוד העורף ולוועדה המקומית. ראשון לציון והמרכז.",
     ogType: "article",
+    crumb: "תכנון ממ״ד",
   },
 
   // /אישור-פרגולה consolidated into /services/pergola-approval (above).
@@ -89,14 +105,15 @@ const ROUTES: RouteMeta[] = [
     description:
       "מדריך קצר: מה תפקיד הקונסטרוקטור, מתי החוק מחייב אישור מהנדס מבנים, באיזה שלב פונים אליו וכמה זה עולה. כתוב על ידי מהנדס פעיל במרכז הארץ.",
     ogType: "article",
+    crumb: "מה זה קונסטרוקטור",
   },
 
   {
     path: "/areas",
     canonical: `${SITE}/areas`,
     title: "אזורי שירות — קונסטרוקטור במרכז הארץ | א. סדצקי הנדסה",
-    description:
-      "קונסטרוקטור ומהנדס מבנים במרכז הארץ: ראשון לציון, תל אביב, חולון, בת ים, רחובות, נס ציונה, פתח תקווה, רמת גן, גבעתיים ועוד. ליווי מול הוועדה המקומית.",
+    description: `קונסטרוקטור ומהנדס מבנים במרכז הארץ: ${AREA_CITIES}. ליווי מול הוועדה המקומית.`,
+    crumb: "אזורי שירות",
   },
 
   ...(
@@ -114,12 +131,13 @@ const ROUTES: RouteMeta[] = [
       ["ramat-gan", "רמת גן", "ברמת גן", "הוועדה המקומית רמת גן"],
       ["givatayim", "גבעתיים", "בגבעתיים", "הוועדה המקומית גבעתיים"],
     ] as const
-  ).map(([slug, , cityInTitle, committee]): RouteMeta => ({
+  ).map(([slug, city, cityInTitle, committee]): RouteMeta => ({
     path: `/areas/${slug}`,
     canonical: `${SITE}/areas/${slug}`,
     title: `קונסטרוקטור ${cityInTitle} — אישורי מהנדס ותכנון שלד | א. סדצקי`,
     description: `קונסטרוקטור ${cityInTitle}: אישורי מהנדס, חוות דעת, חיזוק מבנים, תכנון ממ״ד ופרגולות. ליווי מול ${committee}. מענה תוך 24 שעות.`,
     ogType: "article",
+    crumb: `קונסטרוקטור ${city}`,
   })),
 ];
 
@@ -201,6 +219,27 @@ function stampHead(shell: string, meta: RouteMeta): string {
     /<meta\s+name=["']twitter:description["'][^>]*>/i,
     `<meta name="twitter:description" content="${d}" />`,
   );
+
+  // JSON-LD — stamp the sitewide business node on every route so crawlers that
+  // read only the static head (LinkedIn/Slack/Facebook/Bing/plain Google) get
+  // structured data. The runtime Helmet copy in <Seo> shares the same @id, so
+  // the two coalesce into one node. A BreadcrumbList is added for non-home
+  // routes, plus any route-specific nodes from meta.jsonLd.
+  const nodes: Record<string, unknown>[] = [businessSchema];
+  if (meta.crumb) {
+    nodes.push(
+      breadcrumbSchema([
+        { name: "בית", url: `${SITE}/` },
+        { name: meta.crumb, url: meta.canonical },
+      ]),
+    );
+  }
+  if (meta.jsonLd?.length) nodes.push(...meta.jsonLd);
+
+  const ldTags = nodes
+    .map((n) => `<script type="application/ld+json">${JSON.stringify(n)}</script>`)
+    .join("\n    ");
+  html = html.replace(/<\/head>/i, `    ${ldTags}\n  </head>`);
 
   return html;
 }

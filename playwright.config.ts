@@ -3,6 +3,10 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
+  // Run several workers on CI so the 334-test suite finishes within the job
+  // budget. The specs are client-side (form validation, focus, tab order,
+  // toasts, hash nav) and share no server state, so parallelism is safe.
+  workers: process.env.CI ? 4 : undefined,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI

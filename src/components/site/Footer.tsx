@@ -24,6 +24,7 @@ export const Footer = () => (
         </p>
         <div className="flex items-center gap-2 mt-6">
           <a href={waLink()} onClick={(e) => openWhatsApp(e)} aria-label="WhatsApp"
+            target="_blank" rel="noopener noreferrer"
             className="w-10 h-10 grid place-items-center rounded-full bg-primary-foreground/10 hover:bg-whatsapp transition-smooth">
             <MessageCircle className="w-4 h-4" />
           </a>
