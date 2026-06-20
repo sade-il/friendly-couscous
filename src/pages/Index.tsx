@@ -19,6 +19,8 @@ import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
 import { AccessibilityWidget } from "@/components/site/AccessibilityWidget";
 import { Seo } from "@/components/site/Seo";
 import { useScrollDepthTracking } from "@/hooks/use-scroll-depth-tracking";
+import { useEffect } from "react";
+import { alignToCurrentHash } from "@/lib/scroll";
 
 const SITE_URL = "https://sade-il.com/";
 
@@ -63,6 +65,21 @@ const servicesCatalogSchema = {
 
 const Index = () => {
   useScrollDepthTracking();
+
+  // Direct hash entry (deep link, reload, or typing #section in the address
+  // bar) has no nav click, so `scrollToHash` never runs and the SPA's late-
+  // mounting sections miss the browser's native hash jump. Align on mount and
+  // on every hashchange so the target lands flush below the sticky header.
+  useEffect(() => {
+    const cancelMount = alignToCurrentHash();
+    const onHashChange = () => alignToCurrentHash();
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      cancelMount();
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, []);
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
