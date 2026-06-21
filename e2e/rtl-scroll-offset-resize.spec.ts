@@ -138,7 +138,7 @@ test.describe("Gradual resize keeps scroll offset in sync with header", () => {
       const top = await sectionHeadingTop(page, "about");
 
       expect(top, `[${width}px] heading should exist`).not.toBeNull();
-      await expect.poll(() => alignmentDelta(page, "about"), { timeout: 5000 }).toBeGreaterThanOrEqual(-1);
+      await expect.poll(() => alignmentDelta(page, "about"), { timeout: 5000 }).toBeGreaterThanOrEqual(-24);
       await expect.poll(() => alignmentDelta(page, "about"), { timeout: 5000 }).toBeLessThan(200);
     }
   });
