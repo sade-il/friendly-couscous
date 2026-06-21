@@ -3,6 +3,9 @@ import type { MouseEvent } from "react";
 // Height of the sticky header we must clear so a section heading lands flush
 // just below it (kept in sync with the visual header height).
 const HEADER_OFFSET = 96;
+const ALIGNMENT_TOLERANCE_PX = { min: -1, max: 2 } as const;
+const ALIGNMENT_RETRY_DELAY_MS = 120;
+const MAX_ALIGNMENT_RETRIES = 3;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -21,7 +24,7 @@ const isTargetAligned = (id: string) => {
   const target = getScrollTarget(id);
   if (!target) return false;
   const delta = target.getBoundingClientRect().top - getHeaderOffset();
-  return delta >= -1 && delta <= 2;
+  return delta >= ALIGNMENT_TOLERANCE_PX.min && delta <= ALIGNMENT_TOLERANCE_PX.max;
 };
 
 /**
@@ -83,11 +86,11 @@ export const alignToCurrentHash = (): (() => void) => {
     // a few times to absorb post-mount layout shifts from fonts / lazy content
     // above the target. Once offsets are stable these passes are no-ops.
     const aligned = scrollToId(id, "auto") && isTargetAligned(id);
-    if (++tries < 3 && (tries === 1 || !aligned)) {
+    if (++tries < MAX_ALIGNMENT_RETRIES && (tries === 1 || !aligned)) {
       const timeoutId = window.setTimeout(() => {
         timeoutIds.delete(timeoutId);
         run();
-      }, 120);
+      }, ALIGNMENT_RETRY_DELAY_MS);
       timeoutIds.add(timeoutId);
     }
   };
