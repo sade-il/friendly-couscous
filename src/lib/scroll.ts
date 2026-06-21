@@ -1,11 +1,10 @@
 import type { MouseEvent } from "react";
 
-// Height of the sticky header we must clear so a section heading lands flush
-// just below it (kept in sync with the visual header height).
+// Fallback height used if the sticky header is not mounted yet.
 const HEADER_OFFSET = 96;
 const ALIGNMENT_TOLERANCE_PX = { min: 0, max: 2 } as const;
-const ALIGNMENT_RETRY_DELAY_MS = 120;
-const MAX_ALIGNMENT_RETRIES = 3;
+const ALIGNMENT_RETRY_DELAY_MS = 30;
+const MAX_ALIGNMENT_RETRIES = 40;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -69,6 +68,7 @@ export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => 
 
   window.history.pushState(null, "", href);
   scrollToId(id);
+  alignToCurrentHash();
 };
 
 /**
@@ -90,9 +90,6 @@ export const alignToCurrentHash = (): (() => void) => {
   const timeoutIds = new Set<number>();
   const run = () => {
     if (cancelled) return;
-    // Land instantly (deep links shouldn't animate the whole page) and re-align
-    // a few times to absorb post-mount layout shifts from fonts / lazy content
-    // above the target. Once offsets are stable these passes are no-ops.
     const aligned = scrollToId(id, "auto") && isTargetAligned(id);
     const shouldContinue = tries === 0 || !aligned;
     tries += 1;

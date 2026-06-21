@@ -71,20 +71,42 @@ const Index = () => {
   // mounting sections miss the browser's native hash jump. Align on mount and
   // on every hashchange so the target lands flush below the sticky header.
   useEffect(() => {
-    const previousScrollRestoration = window.history.scrollRestoration;
-    window.history.scrollRestoration = "manual";
+    const previousScrollRestoration = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    let lastHash = window.location.hash;
     let cancelAlignment = alignToCurrentHash();
-    const handleHashChange = () => {
+    let resizeTimer: number | undefined;
+    const realign = () => {
       cancelAlignment();
       cancelAlignment = alignToCurrentHash();
+      lastHash = window.location.hash;
     };
-    window.addEventListener("hashchange", handleHashChange);
-    window.addEventListener("popstate", handleHashChange);
+    const onHashChange = () => realign();
+    const onPopState = () => realign();
+    const onResize = () => {
+      if (!window.location.hash) return;
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(realign, 50);
+    };
+    const onPageShow = () => {
+      if (window.location.hash) realign();
+    };
+    const watchHash = window.setInterval(() => {
+      if (window.location.hash !== lastHash) realign();
+    }, 50);
+    window.addEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("pageshow", onPageShow);
     return () => {
+      history.scrollRestoration = previousScrollRestoration;
       cancelAlignment();
-      window.removeEventListener("hashchange", handleHashChange);
-      window.removeEventListener("popstate", handleHashChange);
-      window.history.scrollRestoration = previousScrollRestoration;
+      window.clearTimeout(resizeTimer);
+      window.clearInterval(watchHash);
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pageshow", onPageShow);
     };
   }, []);
 

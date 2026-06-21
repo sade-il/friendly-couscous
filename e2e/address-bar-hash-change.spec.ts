@@ -144,9 +144,9 @@ test.describe("Direct hash entry from address bar — desktop", () => {
     await page.evaluate(() => window.scrollBy({ top: 400, behavior: "auto" }));
     await page.waitForTimeout(80);
 
-    // Setting location.hash to the same value is a no-op for hashchange, so we
-    // simulate a true "re-enter" via goto (which is what the address bar does).
-    await page.goto("/#about");
+    // Re-entering the exact same URL from the address bar is effectively a
+    // reload of the current document, not a same-document hashchange.
+    await page.reload();
     await waitForScrollSettled(page);
 
     await expectFlushBelowHeader(page, "about");
