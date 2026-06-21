@@ -2,7 +2,11 @@ import type { MouseEvent } from "react";
 
 // Fallback height used if the sticky header is not mounted yet.
 const HEADER_OFFSET = 96;
-const ALIGN_TOLERANCE = 1;
+// Land the heading a few px BELOW the sticky header (not exactly at its edge):
+// avoids sub-pixel occlusion and stops the realign loop from fighting
+// integer-scroll rounding around a 1px boundary.
+const HEADER_GAP = 8;
+const ALIGN_TOLERANCE = 2;
 const ALIGN_RETRIES = 40;
 const ALIGN_DELAY_MS = 30;
 
@@ -31,7 +35,7 @@ export const scrollToId = (
 ): boolean => {
   const anchor = scrollAnchorForId(id);
   if (!anchor) return false;
-  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset();
+  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
   if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
   else window.scrollTo({ top: Math.max(top, 0), behavior });
   return true;
@@ -73,7 +77,7 @@ export const alignToCurrentHash = (): (() => void) => {
     if (cancelled) return;
     const anchor = scrollAnchorForId(id);
     if (!anchor) return;
-    const delta = anchor.getBoundingClientRect().top - headerOffset();
+    const delta = anchor.getBoundingClientRect().top - headerOffset() - HEADER_GAP;
     if (Math.abs(delta) <= ALIGN_TOLERANCE) return;
 
     // Land instantly (deep links shouldn't animate the whole page) and re-align

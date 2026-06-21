@@ -52,7 +52,9 @@
     --whatsapp-foreground: 0 0% 100%;
     --whatsapp-glow: 142 90% 55%;
 
-    --destructive: 0 84% 55%;
+    /* 45% lightness keeps a clearly-red destructive while clearing WCAG AA
+       contrast (~5:1) for error text on the white card; 55% was ~4.37:1. */
+    --destructive: 0 84% 45%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 15% 90%;

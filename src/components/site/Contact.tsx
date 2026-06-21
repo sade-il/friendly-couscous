@@ -77,6 +77,10 @@ export const Contact = () => {
   const [liveMsg, setLiveMsg] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
+  // True only when the Select closed because the user picked an option (vs
+  // Escape / outside-click) — lets us advance focus to desc on selection while
+  // still letting Radix return focus to the trigger on Escape.
+  const typeJustSelected = useRef(false);
   // Track the validation toast so we can dismiss/update it as errors change
   const errorToastRef = useRef<{ id: string; dismiss: () => void; update: (props: { id: string; title?: string; description?: string; variant?: "default" | "destructive" }) => void } | null>(null);
 
@@ -173,6 +177,7 @@ export const Contact = () => {
       const firstInvalid = FIELD_ORDER.find((f) => newErrors[f]);
       if (firstInvalid) {
         // Move focus to the summary so screen readers announce the full list
+        // (GOV.UK error-summary pattern); users jump to a field from there.
         requestAnimationFrame(() => {
           summaryRef.current?.focus();
           summaryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -420,12 +425,10 @@ export const Contact = () => {
                 onValueChange={(v) => {
                   setType(v);
                   clearError("type");
-                  // After a selection, advance focus to the description field
-                  // so keyboard users continue naturally instead of returning to trigger.
-                  requestAnimationFrame(() => {
-                    const el = formRef.current?.querySelector<HTMLElement>('textarea[name="desc"]');
-                    el?.focus();
-                  });
+                  // Mark that this close is from a real selection; the actual
+                  // focus advance happens in onCloseAutoFocus (below), which wins
+                  // the race against Radix's default "return focus to trigger".
+                  typeJustSelected.current = true;
                 }}
               >
                 <SelectTrigger
@@ -437,7 +440,16 @@ export const Contact = () => {
                 >
                   <SelectValue placeholder="בחרו את סוג הפנייה" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  onCloseAutoFocus={(e) => {
+                    if (!typeJustSelected.current) return; // Escape/outside → let Radix focus the trigger
+                    typeJustSelected.current = false;
+                    e.preventDefault();
+                    formRef.current
+                      ?.querySelector<HTMLElement>('textarea[name="desc"]')
+                      ?.focus();
+                  }}
+                >
                   <SelectItem value="planning">תכנון קונסטרוקציה</SelectItem>
                   <SelectItem value="opinion">חוות דעת הנדסית</SelectItem>
                   <SelectItem value="dangerous">מבנה מסוכן</SelectItem>
@@ -475,7 +487,19 @@ export const Contact = () => {
                 className={`mt-2 file:text-foreground ${errClass("files")}`}
                 aria-invalid={!!errors.files}
                 aria-describedby={errors.files ? "files-error" : undefined}
-                onChange={() => clearError("files")}
+                onChange={(e) => {
+                  // Validate eagerly on change (like the other fields) so the
+                  // file field's invalid state always reflects the current
+                  // selection — not just the last submit.
+                  const fileError = validateFiles(e.currentTarget.files);
+                  setErrors((prev) => {
+                    if (fileError) return { ...prev, files: fileError };
+                    if (!prev.files) return prev;
+                    const next = { ...prev };
+                    delete next.files;
+                    return next;
+                  });
+                }}
               />
               <FieldError field="files" />
             </div>
