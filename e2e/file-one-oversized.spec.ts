@@ -64,7 +64,7 @@ test.describe("Single oversized file among many — error & focus", () => {
     await expect(fileEntry).toContainText("10MB");
 
     // Toast acknowledges the error
-    await expect(page.locator('[role="status"], [role="alert"]').filter({ hasText: /יש לתקן|דורשים תיקון/ })).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[role="alert"]').filter({ hasText: /יש לתקן|דורשים תיקון/ })).toBeVisible({ timeout: 3000 });
 
     // Click summary entry → focus on file input
     await fileEntry.locator("button").click();

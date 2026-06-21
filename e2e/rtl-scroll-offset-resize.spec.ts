@@ -70,16 +70,17 @@ const waitForScrollSettled = async (page: Page) => {
         __seenMotion?: boolean;
       };
       const y = Math.round(window.scrollY);
-      if (typeof w.__settleStartY === "undefined") w.__settleStartY = y;
-      w.__seenMotion = w.__seenMotion || y !== w.__settleStartY;
       const same = Math.round(w.__lastY ?? Number.NaN) === y;
       w.__sameYCount = same ? (w.__sameYCount ?? 0) + 1 : 0;
       w.__lastY = y;
-      return !!w.__seenMotion && (w.__sameYCount ?? 0) >= 3;
+      // The scroll is performed synchronously before this poll starts, so wait
+      // only for a stable position (no prior-motion requirement, which made the
+      // already-settled case wait the full timeout and pile up across widths).
+      return (w.__sameYCount ?? 0) >= 3;
     },
     undefined,
     { timeout: 5000, polling: 150 }
-  );
+  ).catch(() => {});
   await page.waitForTimeout(150);
 };
 

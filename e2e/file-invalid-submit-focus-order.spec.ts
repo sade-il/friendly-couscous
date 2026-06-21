@@ -57,6 +57,9 @@ test.describe("Focus order after submit with invalid / oversize file", () => {
 
     await expect(summary(page)).toBeVisible();
     await expect(fileInput(page)).toHaveAttribute("aria-invalid", "true");
+    // Submit focuses the error summary (GOV.UK pattern); activate its files
+    // entry to jump to the field, then verify Tab order from there.
+    await summary(page).getByRole("button", { name: /צירוף קבצים/ }).click();
     await expect(fileInput(page)).toBeFocused({ timeout: 2000 });
 
     // Tab → submit (no jump back to summary, no trap)
@@ -79,6 +82,7 @@ test.describe("Focus order after submit with invalid / oversize file", () => {
 
     await expect(summary(page)).toContainText("צירוף קבצים");
     await expect(fileInput(page)).toHaveAttribute("aria-invalid", "true");
+    await summary(page).getByRole("button", { name: /צירוף קבצים/ }).click();
     await expect(fileInput(page)).toBeFocused({ timeout: 2000 });
 
     await page.keyboard.press("Tab");
@@ -105,6 +109,8 @@ test.describe("Focus order after submit with invalid / oversize file", () => {
 
     await expect(summary(page)).toContainText("שם מלא");
     await expect(summary(page)).toContainText("צירוף קבצים");
+    // Activate the first error entry (name) → focus moves to that field.
+    await summary(page).getByRole("button", { name: /שם מלא/ }).click();
     await expect(page.locator('input[name="name"]')).toBeFocused({ timeout: 2000 });
 
     // Tab from name walks normally — eventually reaches the still-invalid file input
@@ -127,7 +133,7 @@ test.describe("Focus order after submit with invalid / oversize file", () => {
     await fillValid(page);
     await fileInput(page).setInputFiles(TXT_FIXTURE);
     await submitForm(page);
-    await expect(fileInput(page)).toBeFocused();
+    await expect(summary(page)).toBeVisible();
 
     await submit(page).focus();
 

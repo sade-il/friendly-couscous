@@ -25,7 +25,7 @@ test.describe("Accessibility skip-link aria-live announcement", () => {
     await skip.press("Enter");
 
     const live = page.locator('#contact [role="status"][aria-live="polite"]');
-    await expect(live).toContainText("קפצת לטופס", { timeout: 3000 });
+    await expect(live).toContainText("מעבר לטופס", { timeout: 3000 });
     await expect(live).toContainText("שם מלא");
 
     // First form field should receive focus
@@ -46,13 +46,17 @@ test.describe("Accessibility skip-link aria-live announcement", () => {
     await skip.focus();
     await skip.press("Enter");
 
+    // Focus lands on the summary FIRST — assert this immediately, before the
+    // ~600ms timer advances focus to the first invalid field. (Checking it after
+    // the slower announce-text assertions below would race that timer.)
+    await expect(summary).toBeFocused({ timeout: 1500 });
+
     const live = page.locator('#contact [role="status"][aria-live="polite"]');
-    await expect(live).toContainText("קפצת לסיכום השגיאות", { timeout: 3000 });
+    await expect(live).toContainText("מעבר לסיכום השגיאות", { timeout: 3000 });
     await expect(live).toContainText("שדות דורשים תיקון");
     await expect(live).toContainText("שם מלא"); // first invalid field
 
-    // Focus moves to summary first, then (after ~600ms) to the first invalid field
-    await expect(summary).toBeFocused();
+    // After ~600ms focus advances to the first invalid field.
     await expect(page.locator('input[name="name"]')).toBeFocused({ timeout: 2000 });
     await expect(page.locator('input[name="name"]')).toHaveAttribute("aria-invalid", "true");
   });
@@ -90,12 +94,12 @@ test.describe("Accessibility skip-link aria-live announcement", () => {
 
     await skip.focus();
     await skip.press("Enter");
-    await expect(live).toContainText("קפצת לטופס");
+    await expect(live).toContainText("מעבר לטופס");
 
     // Second activation: live region should briefly clear, then re-populate
     await skip.focus();
     await skip.press("Enter");
     // Eventually contains the message again — the reset trick re-fires SR announcement
-    await expect(live).toContainText("קפצת לטופס", { timeout: 3000 });
+    await expect(live).toContainText("מעבר לטופס", { timeout: 3000 });
   });
 });

@@ -26,7 +26,12 @@ const headerBottom = (page: Page) =>
 const sectionTop = (page: Page, id: string) =>
   page.evaluate((sid) => {
     const el = document.getElementById(sid);
-    return el ? el.getBoundingClientRect().top : null;
+    if (!el) return null;
+    // The app aligns the section's HEADING flush below the sticky header
+    // (heading-flush), so measure the heading — the section element's own top
+    // sits above the header by design (its eyebrow/padding scrolls off).
+    const heading = el.querySelector("h1, h2, h3");
+    return (heading ?? el).getBoundingClientRect().top;
   }, id);
 
 const waitForScrollSettled = async (page: Page) => {

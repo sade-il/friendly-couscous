@@ -10,7 +10,7 @@ import path from "path";
  *   - removes the file row from the summary
  *   - if no other errors remain, removes the summary entirely
  *   - the skip-link reverts to "jump to first form field" mode
- *     (announces "קפצת לטופס...") instead of "jump to summary".
+ *     (announces "מעבר לטופס...") instead of "jump to summary".
  */
 
 const PDF_FIXTURE = path.join(__dirname, "fixtures", "sample.pdf");
@@ -69,7 +69,7 @@ test.describe("Live update on file selection change (no resubmit)", () => {
       await skip.focus();
       await skip.press("Enter");
       await expect(summary(page)).toBeFocused({ timeout: 2000 });
-      await expect(live(page)).toContainText("קפצת לסיכום השגיאות");
+      await expect(live(page)).toContainText("מעבר לסיכום השגיאות");
     }
 
     // Fix the file selection — without resubmitting
@@ -81,7 +81,7 @@ test.describe("Live update on file selection change (no resubmit)", () => {
     await skip.focus();
     await skip.press("Enter");
     await expect(page.locator('input[name="name"]')).toBeFocused({ timeout: 2000 });
-    await expect(live(page)).toContainText("קפצת לטופס");
+    await expect(live(page)).toContainText("מעבר לטופס");
   });
 
   test("With other errors still present, only the file row is removed; skip-link still goes to summary", async ({ page }) => {

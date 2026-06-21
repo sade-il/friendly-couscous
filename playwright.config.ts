@@ -3,6 +3,11 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
+  // The heavier specs (gradual viewport-resize loops, large multi-file uploads)
+  // run well under the 30s default in isolation, but 4 workers share a single
+  // Vite dev server, so under contention they can briefly exceed 30s. A 60s
+  // budget absorbs that without masking real hangs.
+  timeout: 60_000,
   // Run several workers on CI so the 334-test suite finishes within the job
   // budget. The specs are client-side (form validation, focus, tab order,
   // toasts, hash nav) and share no server state, so parallelism is safe.

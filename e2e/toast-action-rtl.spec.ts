@@ -19,7 +19,7 @@ const submitForm = (page: Page) =>
   page.getByRole("button", { name: /שליחת פנייה/ }).click();
 
 const toast = (page: Page) =>
-  page.locator('[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
+  page.locator('ol').locator('li[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
 
 const actionBtn = (page: Page) =>
   toast(page).getByRole("button", { name: "עבור לסיכום" });
@@ -134,7 +134,13 @@ test.describe("Toast 'עבור לסיכום' action — RTL keyboard + focus int
   });
 
   test("Action button remains keyboard-operable after a live toast description update", async ({ page }) => {
-    // Two errors: empty name + bad file
+    // Exactly two errors: leave name empty + a bad file; fill the rest so the
+    // count is deterministic.
+    await page.locator('input[name="phone"]').fill("0501234567");
+    await page.locator("#type").focus();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Enter");
+    await page.locator('textarea[name="desc"]').fill("תיאור מספיק לבדיקה הנדסית.");
     await page.locator("#files").setInputFiles([PDF_FIXTURE, TXT_FIXTURE]);
     await submitForm(page);
     await expect(toast(page)).toContainText("2 שדות דורשים תיקון");

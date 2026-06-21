@@ -28,7 +28,7 @@ const submitForm = (page: Page) =>
 
 // The shadcn/Radix toast is rendered with role="status" and the title text we use
 const toast = (page: Page) =>
-  page.locator('[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
+  page.locator('ol').locator('li[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
 
 test.describe("Toast updates live with the errors state", () => {
   test.beforeEach(async ({ page }) => {

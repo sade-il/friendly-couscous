@@ -122,7 +122,9 @@ test.describe("Rapid menu clicks settle on the LAST target — desktop", () => {
   test("Desktop: 4 rapid clicks end aligned with the last section", async ({ page }) => {
     await desktopLink(page, "שירותים").click();
     await page.waitForTimeout(40);
-    await desktopLink(page, "פרויקטים").click();
+    // Use an in-page hash section (not "פרויקטים", which is a /projects route
+    // link that navigates away from the homepage and removes #contact).
+    await desktopLink(page, "המלצות").click();
     await page.waitForTimeout(40);
     await desktopLink(page, "אודות").click();
     await page.waitForTimeout(40);

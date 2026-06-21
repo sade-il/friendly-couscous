@@ -159,6 +159,6 @@ test.describe("Tab order & focus after live error updates (no resubmit)", () => 
     await skip.focus();
     await skip.press("Enter");
     await expect(page.locator('input[name="name"]')).toBeFocused({ timeout: 2000 });
-    await expect(live(page)).toContainText("קפצת לטופס");
+    await expect(live(page)).toContainText("מעבר לטופס");
   });
 });
