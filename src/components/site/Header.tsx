@@ -182,7 +182,7 @@ export const Header = () => {
 
       {open && (
         <div id="mobile-nav" className="xl:hidden bg-primary border-t border-primary-foreground/10 animate-fade-up">
-          <nav className="container mx-auto py-4 flex flex-col gap-1">
+          <nav className="container mx-auto max-h-[calc(100svh-5rem)] overflow-y-auto py-4 flex flex-col gap-1 overscroll-contain">
             {links.map((l) => {
               const isActive = active === l.href;
               return (

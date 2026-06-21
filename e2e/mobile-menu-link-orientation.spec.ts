@@ -25,12 +25,6 @@ const openMenu = async (page: Page) => {
   await expect(mobileNav(page)).toBeVisible({ timeout: 3000 });
 };
 
-const headerBottom = (page: Page) =>
-  page.evaluate(() => {
-    const h = document.querySelector("header");
-    return h ? h.getBoundingClientRect().bottom : 0;
-  });
-
 const sectionTop = (page: Page, id: string) =>
   page.evaluate((sid) => {
     const el = document.getElementById(sid);
@@ -41,14 +35,51 @@ const sectionTop = (page: Page, id: string) =>
     return target.getBoundingClientRect().top;
   }, id);
 
+const alignmentDelta = (page: Page, id: string) =>
+  page.evaluate((sid) => {
+    const el = document.getElementById(sid);
+    if (!el) return null;
+    const heading = el.querySelector("h1, h2, h3");
+    const target = heading ?? el;
+    const stickyBar = document.querySelector("header > .container");
+    const header = document.querySelector("header");
+    const hb = stickyBar instanceof HTMLElement
+      ? stickyBar.getBoundingClientRect().bottom
+      : header instanceof HTMLElement
+        ? header.getBoundingClientRect().bottom
+        : 0;
+    return target.getBoundingClientRect().top - hb;
+  }, id);
+
 const waitForScrollSettled = async (page: Page) => {
+  await page.evaluate(() => {
+    const w = window as Window & {
+      __lastY?: number;
+      __sameYCount?: number;
+      __settleStartY?: number;
+      __seenMotion?: boolean;
+    };
+    delete w.__lastY;
+    delete w.__sameYCount;
+    delete w.__settleStartY;
+    delete w.__seenMotion;
+  });
   await page.waitForFunction(() => {
-    const w = window as Window & { __lastY?: number };
-    if (typeof w.__lastY === "undefined") w.__lastY = -1;
-    const same = w.__lastY === window.scrollY;
-    w.__lastY = window.scrollY;
-    return same;
-  }, undefined, { timeout: 3000, polling: 150 });
+    const w = window as Window & {
+      __lastY?: number;
+      __sameYCount?: number;
+      __settleStartY?: number;
+      __seenMotion?: boolean;
+    };
+    const y = Math.round(window.scrollY);
+    if (typeof w.__settleStartY === "undefined") w.__settleStartY = y;
+    w.__seenMotion = w.__seenMotion || y !== w.__settleStartY;
+    const same = Math.round(w.__lastY ?? Number.NaN) === y;
+    w.__sameYCount = same ? (w.__sameYCount ?? 0) + 1 : 0;
+    w.__lastY = y;
+    return !!w.__seenMotion && (w.__sameYCount ?? 0) >= 3;
+  }, undefined, { timeout: 5000, polling: 150 });
+  await page.waitForTimeout(150);
 };
 
 for (const o of ORIENTATIONS) {
@@ -62,23 +93,24 @@ for (const o of ORIENTATIONS) {
     for (const s of SECTIONS) {
       test(`${o.name}: clicking "${s.label}" places #${s.id} below the sticky header`, async ({ page }) => {
         await openMenu(page);
-        await mobileNav(page).getByRole("link", { name: s.label }).click();
+        const link = mobileNav(page).getByRole("link", { name: s.label });
+        await link.scrollIntoViewIfNeeded();
+        await link.click();
         await waitForScrollSettled(page);
 
         const top = await sectionTop(page, s.id);
-        const hb = await headerBottom(page);
 
         expect(top, `#${s.id} should be in the DOM`).not.toBeNull();
-        // Heading must not be occluded by the sticky header
-        expect(top!).toBeGreaterThanOrEqual(hb - 1);
-        // And should not be pushed too far down (reasonable breathing room)
-        expect(top! - hb).toBeLessThan(200);
+        await expect.poll(() => alignmentDelta(page, s.id), { timeout: 5000 }).toBeGreaterThanOrEqual(-1);
+        await expect.poll(() => alignmentDelta(page, s.id), { timeout: 5000 }).toBeLessThan(200);
       });
     }
 
     test(`${o.name}: sticky header remains pinned at the viewport top after navigation`, async ({ page }) => {
       await openMenu(page);
-      await mobileNav(page).getByRole("link", { name: "צור קשר" }).click();
+      const link = mobileNav(page).getByRole("link", { name: "צור קשר" });
+      await link.scrollIntoViewIfNeeded();
+      await link.click();
       await waitForScrollSettled(page);
 
       const rect = await page.evaluate(() => {

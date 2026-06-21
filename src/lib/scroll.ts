@@ -17,8 +17,12 @@ const getScrollTarget = (id: string) => {
   return section.querySelector<HTMLElement>("h1, h2, h3") ?? section;
 };
 
-const getHeaderOffset = () =>
-  document.querySelector<HTMLElement>("header")?.getBoundingClientRect().bottom ?? HEADER_OFFSET;
+const getHeaderOffset = () => {
+  const header = document.querySelector("header");
+  const stickyBar = header?.querySelector(":scope > .container");
+  if (stickyBar instanceof HTMLElement) return stickyBar.getBoundingClientRect().bottom;
+  return header instanceof HTMLElement ? header.getBoundingClientRect().bottom : HEADER_OFFSET;
+};
 
 const isTargetAligned = (id: string) => {
   const target = getScrollTarget(id);
@@ -54,7 +58,7 @@ export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => 
   e.preventDefault();
   const id = href.slice(1);
 
-  if (!document.getElementById(id)) {
+  if (!getScrollTarget(id)) {
     window.location.hash = href;
     return;
   }
