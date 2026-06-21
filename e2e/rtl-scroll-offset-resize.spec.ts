@@ -13,6 +13,7 @@ import { test, expect, Page } from "@playwright/test";
 
 const WIDTHS = [360, 390, 414, 480, 640, 768, 900, 1024] as const;
 const HEIGHT = 800;
+const RESIZE_REALIGN_MIN_DELTA = -24;
 
 const SECTIONS = [
   { label: "שירותים", id: "services" },
@@ -138,7 +139,11 @@ test.describe("Gradual resize keeps scroll offset in sync with header", () => {
       const top = await sectionHeadingTop(page, "about");
 
       expect(top, `[${width}px] heading should exist`).not.toBeNull();
-      await expect.poll(() => alignmentDelta(page, "about"), { timeout: 5000 }).toBeGreaterThanOrEqual(-24);
+      await expect
+        .poll(() => alignmentDelta(page, "about"), { timeout: 5000 })
+        // Repeated viewport resizes can leave the measured heading top a few
+        // pixels under the sticky bar before the next frame settles.
+        .toBeGreaterThanOrEqual(RESIZE_REALIGN_MIN_DELTA);
       await expect.poll(() => alignmentDelta(page, "about"), { timeout: 5000 }).toBeLessThan(200);
     }
   });
