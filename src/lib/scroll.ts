@@ -2,37 +2,23 @@ import type { MouseEvent } from "react";
 
 // Fallback height used if the sticky header is not mounted yet.
 const HEADER_OFFSET = 96;
-const ALIGNMENT_TOLERANCE_PX = { min: 0, max: 2 } as const;
-const ALIGNMENT_RETRY_DELAY_MS = 30;
-const MAX_ALIGNMENT_RETRIES = 40;
+const ALIGN_TOLERANCE = 1;
+const ALIGN_RETRIES = 40;
+const ALIGN_DELAY_MS = 30;
+
+const headerOffset = () =>
+  document.querySelector("header")?.getBoundingClientRect().bottom ?? HEADER_OFFSET;
+
+const scrollAnchorForId = (id: string) => {
+  const target = document.getElementById(id);
+  if (!target) return null;
+  return target.matches("h1, h2, h3") ? target : (target.querySelector("h1, h2, h3") ?? target);
+};
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const getScrollTarget = (id: string) => {
-  const section = document.getElementById(id);
-  if (!section) return null;
-  return section.querySelector<HTMLElement>("h1, h2, h3") ?? section;
-};
-
-const getHeaderOffset = () => {
-  const header = document.querySelector("header");
-  // The sticky visual bar lives in the header's direct `.container` child; use
-  // that element so the offset matches the clickable nav surface, not the
-  // header wrapper that also includes the mobile panel when it is expanded.
-  const stickyBar = header?.querySelector(":scope > .container");
-  if (stickyBar instanceof HTMLElement) return stickyBar.getBoundingClientRect().bottom;
-  return header instanceof HTMLElement ? header.getBoundingClientRect().bottom : HEADER_OFFSET;
-};
-
-const isTargetAligned = (id: string) => {
-  const target = getScrollTarget(id);
-  if (!target) return false;
-  const delta = target.getBoundingClientRect().top - getHeaderOffset();
-  return delta >= ALIGNMENT_TOLERANCE_PX.min && delta <= ALIGNMENT_TOLERANCE_PX.max;
-};
 
 /**
  * Scroll a section (`#id`) flush below the sticky header. Shared by the nav
@@ -43,15 +29,11 @@ export const scrollToId = (
   id: string,
   behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth"
 ): boolean => {
-  const target = getScrollTarget(id);
-  if (!target) return false;
-  const top = target.getBoundingClientRect().top + window.scrollY - getHeaderOffset();
-  const nextTop = Math.max(top, 0);
-  if (behavior === "smooth") {
-    window.scrollTo({ top: nextTop, behavior });
-  } else {
-    window.scrollTo(0, nextTop);
-  }
+  const anchor = scrollAnchorForId(id);
+  if (!anchor) return false;
+  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset();
+  if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
+  else window.scrollTo({ top: Math.max(top, 0), behavior });
   return true;
 };
 
@@ -61,7 +43,7 @@ export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => 
   e.preventDefault();
   const id = href.slice(1);
 
-  if (!getScrollTarget(id)) {
+  if (!document.getElementById(id)) {
     window.location.hash = href;
     return;
   }
@@ -87,24 +69,22 @@ export const alignToCurrentHash = (): (() => void) => {
 
   let cancelled = false;
   let tries = 0;
-  const timeoutIds = new Set<number>();
   const run = () => {
     if (cancelled) return;
-    const aligned = scrollToId(id, "auto") && isTargetAligned(id);
-    const shouldContinue = tries === 0 || !aligned;
-    tries += 1;
-    if (shouldContinue && tries < MAX_ALIGNMENT_RETRIES) {
-      const timeoutId = window.setTimeout(() => {
-        timeoutIds.delete(timeoutId);
-        run();
-      }, ALIGNMENT_RETRY_DELAY_MS);
-      timeoutIds.add(timeoutId);
-    }
+    const anchor = scrollAnchorForId(id);
+    if (!anchor) return;
+    const delta = anchor.getBoundingClientRect().top - headerOffset();
+    if (Math.abs(delta) <= ALIGN_TOLERANCE) return;
+
+    // Land instantly (deep links shouldn't animate the whole page) and re-align
+    // for a short period to absorb native hash jumps plus late layout shifts
+    // above the target. Once offsets are stable these passes are no-ops.
+    window.scrollTo(0, Math.max(window.scrollY + delta, 0));
+    if (++tries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
   };
-  run();
+  // Let the browser/native hash jump happen first, then measure the settled DOM.
+  requestAnimationFrame(() => setTimeout(run, 0));
   return () => {
     cancelled = true;
-    for (const timeoutId of timeoutIds) clearTimeout(timeoutId);
-    timeoutIds.clear();
   };
 };

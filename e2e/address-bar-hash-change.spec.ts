@@ -144,8 +144,8 @@ test.describe("Direct hash entry from address bar — desktop", () => {
     await page.evaluate(() => window.scrollBy({ top: 400, behavior: "auto" }));
     await page.waitForTimeout(80);
 
-    // Re-entering the exact same URL from the address bar is effectively a
-    // reload of the current document, not a same-document hashchange.
+    // Model same-URL address-bar re-entry as a reload-style navigation rather
+    // than a same-document hashchange.
     await page.reload();
     await waitForScrollSettled(page);
 
