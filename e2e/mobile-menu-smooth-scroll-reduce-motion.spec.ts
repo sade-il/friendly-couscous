@@ -92,6 +92,7 @@ test.describe("Smooth scroll under prefers-reduced-motion: reduce", () => {
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
   });

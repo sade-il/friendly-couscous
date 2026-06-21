@@ -86,6 +86,7 @@ test.describe("Reload at /#section — mobile, reduce-motion", () => {
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
   });
 
@@ -146,6 +147,10 @@ test.describe("Reload at /#section — desktop, default + reduce-motion", () => 
 
   test.describe("reduce motion", () => {
     test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+
+    test.beforeEach(async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+    });
 
     for (const s of SECTIONS) {
       test(`Desktop reduce: reload at /#${s.hash} keeps heading flush below header`, async ({ page }) => {

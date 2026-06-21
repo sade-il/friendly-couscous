@@ -8,6 +8,22 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
+const getScrollTarget = (id: string) => {
+  const section = document.getElementById(id);
+  if (!section) return null;
+  return section.querySelector<HTMLElement>("h1, h2, h3") ?? section;
+};
+
+const getHeaderOffset = () =>
+  document.querySelector<HTMLElement>("header")?.getBoundingClientRect().bottom ?? HEADER_OFFSET;
+
+const isTargetAligned = (id: string) => {
+  const target = getScrollTarget(id);
+  if (!target) return false;
+  const delta = target.getBoundingClientRect().top - getHeaderOffset();
+  return delta >= -1 && delta <= 2;
+};
+
 /**
  * Scroll a section (`#id`) flush below the sticky header. Shared by the nav
  * click handler and the deep-link / hashchange handler so both paths use the
@@ -17,10 +33,15 @@ export const scrollToId = (
   id: string,
   behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth"
 ): boolean => {
-  const target = document.getElementById(id);
+  const target = getScrollTarget(id);
   if (!target) return false;
-  const top = target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-  window.scrollTo({ top: Math.max(top, 0), behavior });
+  const top = target.getBoundingClientRect().top + window.scrollY - getHeaderOffset();
+  const nextTop = Math.max(top, 0);
+  if (behavior === "smooth") {
+    window.scrollTo({ top: nextTop, behavior });
+  } else {
+    window.scrollTo(0, nextTop);
+  }
   return true;
 };
 
@@ -55,17 +76,25 @@ export const alignToCurrentHash = (): (() => void) => {
 
   let cancelled = false;
   let tries = 0;
+  const timeoutIds = new Set<number>();
   const run = () => {
     if (cancelled) return;
     // Land instantly (deep links shouldn't animate the whole page) and re-align
     // a few times to absorb post-mount layout shifts from fonts / lazy content
     // above the target. Once offsets are stable these passes are no-ops.
-    scrollToId(id, "auto");
-    if (++tries < 5) setTimeout(run, 120);
+    const aligned = scrollToId(id, "auto") && isTargetAligned(id);
+    if (++tries < 3 && (tries === 1 || !aligned)) {
+      const timeoutId = window.setTimeout(() => {
+        timeoutIds.delete(timeoutId);
+        run();
+      }, 120);
+      timeoutIds.add(timeoutId);
+    }
   };
-  // Defer a frame so the target's mounted layout is measured, not its initial.
-  requestAnimationFrame(run);
+  run();
   return () => {
     cancelled = true;
+    for (const timeoutId of timeoutIds) clearTimeout(timeoutId);
+    timeoutIds.clear();
   };
 };

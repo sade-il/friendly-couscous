@@ -63,6 +63,7 @@ test.describe("Deep link with reduce-motion — mobile", () => {
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
   });
 
@@ -89,6 +90,10 @@ test.describe("Deep link with reduce-motion — mobile", () => {
 
 test.describe("Deep link with reduce-motion — desktop", () => {
   test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+  });
 
   for (const s of SECTIONS) {
     test(`Desktop reduce: deep link /#${s.hash} lands flush below header`, async ({ page }) => {

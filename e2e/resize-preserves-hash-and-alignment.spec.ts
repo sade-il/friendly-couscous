@@ -180,6 +180,7 @@ test.describe("Resize preserves alignment AND URL hash — reduce-motion", () =>
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
   });

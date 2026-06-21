@@ -102,6 +102,7 @@ test.describe("Desktop nav under prefers-reduced-motion: reduce", () => {
   test.use({ viewport: DESKTOP, reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
   });
 

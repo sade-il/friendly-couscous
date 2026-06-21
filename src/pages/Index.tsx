@@ -71,12 +71,20 @@ const Index = () => {
   // mounting sections miss the browser's native hash jump. Align on mount and
   // on every hashchange so the target lands flush below the sticky header.
   useEffect(() => {
-    const cancelMount = alignToCurrentHash();
-    const onHashChange = () => alignToCurrentHash();
-    window.addEventListener("hashchange", onHashChange);
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    let cancelAlignment = alignToCurrentHash();
+    const handleHashChange = () => {
+      cancelAlignment();
+      cancelAlignment = alignToCurrentHash();
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", handleHashChange);
     return () => {
-      cancelMount();
-      window.removeEventListener("hashchange", onHashChange);
+      cancelAlignment();
+      window.removeEventListener("hashchange", handleHashChange);
+      window.removeEventListener("popstate", handleHashChange);
+      window.history.scrollRestoration = previousScrollRestoration;
     };
   }, []);
 
