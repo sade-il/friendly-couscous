@@ -86,7 +86,9 @@ export const alignToCurrentHash = (): (() => void) => {
     // a few times to absorb post-mount layout shifts from fonts / lazy content
     // above the target. Once offsets are stable these passes are no-ops.
     const aligned = scrollToId(id, "auto") && isTargetAligned(id);
-    if (++tries < MAX_ALIGNMENT_RETRIES && (tries === 1 || !aligned)) {
+    const shouldRetry = tries === 0 || !aligned;
+    tries += 1;
+    if (shouldRetry && tries < MAX_ALIGNMENT_RETRIES) {
       const timeoutId = window.setTimeout(() => {
         timeoutIds.delete(timeoutId);
         run();

@@ -56,10 +56,6 @@ const expectFlushBelowHeader = async (page: Page, id: string) => {
   expect(top! - hb).toBeLessThan(160);
 };
 
-const expectStable = async (page: Page) => {
-  await page.waitForTimeout(1000);
-};
-
 // Simulates the user typing a new hash into the address bar by changing
 // window.location.hash directly (no anchor click, no popstate).
 const setHashViaAddressBar = async (page: Page, hash: string) => {
@@ -83,7 +79,7 @@ test.describe("Direct hash entry from address bar — mobile", () => {
       await expect(page).toHaveURL(new RegExp(`#${id}$`));
       expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
       await expectFlushBelowHeader(page, id);
-      await expectStable(page);
+      await page.waitForTimeout(1000);
     });
   }
 
@@ -96,7 +92,7 @@ test.describe("Direct hash entry from address bar — mobile", () => {
 
     await expect(page).toHaveURL(/#contact$/);
     await expectFlushBelowHeader(page, "contact");
-    await expectStable(page);
+    await page.waitForTimeout(1000);
   });
 
   test.skip("Mobile: walking through several hashes (no menu) keeps each flush", async ({ page }) => {
@@ -106,7 +102,7 @@ test.describe("Direct hash entry from address bar — mobile", () => {
       await expect(page).toHaveURL(new RegExp(`#${id}$`));
       await expectFlushBelowHeader(page, id);
     }
-    await expectStable(page);
+    await page.waitForTimeout(1000);
   });
 });
 
@@ -122,7 +118,7 @@ test.describe("Direct hash entry from address bar — desktop", () => {
       await expect(page).toHaveURL(new RegExp(`#${id}$`));
       expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
       await expectFlushBelowHeader(page, id);
-      await expectStable(page);
+      await page.waitForTimeout(1000);
     });
   }
 
@@ -135,7 +131,7 @@ test.describe("Direct hash entry from address bar — desktop", () => {
 
     await expect(page).toHaveURL(/#about$/);
     await expectFlushBelowHeader(page, "about");
-    await expectStable(page);
+    await page.waitForTimeout(1000);
   });
 
   test("Desktop: re-entering the SAME hash (#about → #about) re-aligns flush", async ({ page }) => {
@@ -154,7 +150,7 @@ test.describe("Direct hash entry from address bar — desktop", () => {
     await waitForScrollSettled(page);
 
     await expectFlushBelowHeader(page, "about");
-    await expectStable(page);
+    await page.waitForTimeout(1000);
   });
 
   test.skip("Desktop: history.pushState to a new hash from address-bar-style code lands flush", async ({ page }) => {
@@ -171,7 +167,7 @@ test.describe("Direct hash entry from address bar — desktop", () => {
 
     await expect(page).toHaveURL(/#contact$/);
     await expectFlushBelowHeader(page, "contact");
-    await expectStable(page);
+    await page.waitForTimeout(1000);
   });
 });
 
@@ -194,7 +190,7 @@ test.describe("Direct hash entry — desktop under reduce-motion", () => {
       await page.goto(`/#${id}`);
       await waitForScrollSettled(page);
       await expectFlushBelowHeader(page, id);
-      await expectStable(page);
+      await page.waitForTimeout(1000);
     });
   }
 });
