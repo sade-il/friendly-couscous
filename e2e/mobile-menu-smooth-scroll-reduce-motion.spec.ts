@@ -12,7 +12,7 @@ const SECTIONS = [
   { label: "צור קשר", id: "contact" },
 ] as const;
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const openMenu = async (page: Page) => {
@@ -92,6 +92,7 @@ test.describe("Smooth scroll under prefers-reduced-motion: reduce", () => {
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
   });

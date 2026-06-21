@@ -19,6 +19,8 @@ import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
 import { AccessibilityWidget } from "@/components/site/AccessibilityWidget";
 import { Seo } from "@/components/site/Seo";
 import { useScrollDepthTracking } from "@/hooks/use-scroll-depth-tracking";
+import { useEffect } from "react";
+import { alignToCurrentHash } from "@/lib/scroll";
 
 const SITE_URL = "https://sade-il.com/";
 
@@ -63,6 +65,51 @@ const servicesCatalogSchema = {
 
 const Index = () => {
   useScrollDepthTracking();
+
+  // Direct hash entry (deep link, reload, or typing #section in the address
+  // bar) has no nav click, so `scrollToHash` never runs and the SPA's late-
+  // mounting sections miss the browser's native hash jump. Align on mount and
+  // on every hashchange so the target lands flush below the sticky header.
+  useEffect(() => {
+    const previousScrollRestoration = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    let lastHash = window.location.hash;
+    let cancelAlignment = alignToCurrentHash();
+    let resizeTimer: number | undefined;
+    const realign = () => {
+      cancelAlignment();
+      cancelAlignment = alignToCurrentHash();
+      lastHash = window.location.hash;
+    };
+    const onHashChange = () => realign();
+    const onPopState = () => realign();
+    const onResize = () => {
+      if (!window.location.hash) return;
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(realign, 50);
+    };
+    const onPageShow = () => {
+      if (window.location.hash) realign();
+    };
+    const watchHash = window.setInterval(() => {
+      if (window.location.hash !== lastHash) realign();
+    }, 50);
+    window.addEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      history.scrollRestoration = previousScrollRestoration;
+      cancelAlignment();
+      window.clearTimeout(resizeTimer);
+      window.clearInterval(watchHash);
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, []);
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

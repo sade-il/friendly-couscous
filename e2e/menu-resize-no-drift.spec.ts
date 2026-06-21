@@ -14,7 +14,7 @@ const SECTIONS = [
   { label: "צור קשר", id: "contact" },
 ] as const;
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 const desktopLink = (page: Page, label: string) =>
   page.locator("header nav").getByRole("link", { name: label }).first();
@@ -173,6 +173,7 @@ test.describe("Resize after desktop navigation under reduce-motion", () => {
   test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
   });
 

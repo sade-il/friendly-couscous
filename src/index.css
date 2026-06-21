@@ -109,7 +109,7 @@
   }
   .skip-link:focus { top: 1rem; }
   .skip-link:focus ~ .skip-link:focus { top: 4.25rem; }
-  html { scroll-behavior: smooth; overflow-x: hidden; }
+  html { overflow-x: hidden; }
   section[id] { scroll-margin-top: 6rem; }
   @media (min-width: 1280px) { section[id] { scroll-margin-top: 7rem; } }
   body {

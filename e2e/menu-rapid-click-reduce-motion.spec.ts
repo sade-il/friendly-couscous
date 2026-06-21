@@ -7,7 +7,7 @@ import { test, expect, Page } from "@playwright/test";
  * click. Verified for both mobile menu and desktop nav.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const headerBottom = (page: Page) =>
@@ -70,6 +70,7 @@ test.describe("reduce-motion + rapid mobile clicks settle on the LAST target", (
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
   });
@@ -121,6 +122,7 @@ test.describe("reduce-motion + rapid desktop clicks settle on the LAST target", 
   test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
   });
 

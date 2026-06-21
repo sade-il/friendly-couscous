@@ -1,19 +1,90 @@
 import type { MouseEvent } from "react";
 
+// Fallback height used if the sticky header is not mounted yet.
+const HEADER_OFFSET = 96;
+const ALIGN_TOLERANCE = 1;
+const ALIGN_RETRIES = 40;
+const ALIGN_DELAY_MS = 30;
+
+const headerOffset = () =>
+  document.querySelector("header")?.getBoundingClientRect().bottom ?? HEADER_OFFSET;
+
+const scrollAnchorForId = (id: string) => {
+  const target = document.getElementById(id);
+  if (!target) return null;
+  return target.matches("h1, h2, h3") ? target : (target.querySelector("h1, h2, h3") ?? target);
+};
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Scroll a section (`#id`) flush below the sticky header. Shared by the nav
+ * click handler and the deep-link / hashchange handler so both paths use the
+ * exact same offset and easing. Returns true if the target existed.
+ */
+export const scrollToId = (
+  id: string,
+  behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth"
+): boolean => {
+  const anchor = scrollAnchorForId(id);
+  if (!anchor) return false;
+  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset();
+  if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
+  else window.scrollTo({ top: Math.max(top, 0), behavior });
+  return true;
+};
+
 export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
   if (!href.startsWith("#")) return;
 
   e.preventDefault();
-  const target = document.getElementById(href.slice(1));
+  const id = href.slice(1);
 
-  if (!target) {
+  if (!document.getElementById(id)) {
     window.location.hash = href;
     return;
   }
 
-  const headerOffset = 96;
-  const top = target.getBoundingClientRect().top + window.scrollY - headerOffset;
-
   window.history.pushState(null, "", href);
-  window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+  scrollToId(id);
+  alignToCurrentHash();
+};
+
+/**
+ * Align the section named by `window.location.hash` below the sticky header.
+ * Used for direct hash entry from the address bar, deep links and reloads —
+ * cases where there is no nav click, so `scrollToHash` never runs. SPA sections
+ * mount after the initial paint, so the browser's native hash jump finds no
+ * target and does nothing; this restores the expected alignment.
+ *
+ * Retries briefly because late layout (fonts/lazy content above the target) can
+ * shift offsets just after mount.
+ */
+export const alignToCurrentHash = (): (() => void) => {
+  const id = window.location.hash.replace(/^#/, "");
+  if (!id) return () => {};
+
+  let cancelled = false;
+  let tries = 0;
+  const run = () => {
+    if (cancelled) return;
+    const anchor = scrollAnchorForId(id);
+    if (!anchor) return;
+    const delta = anchor.getBoundingClientRect().top - headerOffset();
+    if (Math.abs(delta) <= ALIGN_TOLERANCE) return;
+
+    // Land instantly (deep links shouldn't animate the whole page) and re-align
+    // for a short period to absorb native hash jumps plus late layout shifts
+    // above the target. Once offsets are stable these passes are no-ops.
+    window.scrollTo(0, Math.max(window.scrollY + delta, 0));
+    if (++tries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
+  };
+  // Let the browser/native hash jump happen first, then measure the settled DOM.
+  requestAnimationFrame(() => setTimeout(run, 0));
+  return () => {
+    cancelled = true;
+  };
 };

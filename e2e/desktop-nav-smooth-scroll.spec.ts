@@ -50,7 +50,7 @@ const desktopNavLink = (page: Page, label: string) =>
 
 const clickDesktopLink = async (page: Page, label: string) => {
   // Mobile menu toggle must NOT be visible at desktop widths
-  await expect(page.getByRole("button", { name: "תפריט" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "תפריט", exact: true })).toBeHidden();
   await desktopNavLink(page, label).click();
   await waitForScrollSettled(page);
 };
@@ -102,6 +102,7 @@ test.describe("Desktop nav under prefers-reduced-motion: reduce", () => {
   test.use({ viewport: DESKTOP, reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
   });
 

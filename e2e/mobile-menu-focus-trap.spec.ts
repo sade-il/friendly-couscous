@@ -7,7 +7,7 @@ import { test, expect, Page } from "@playwright/test";
  * link returns to the toggle as expected.
  */
 
-const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט" });
+const menuButton = (page: Page) => page.getByRole("button", { name: "תפריט", exact: true });
 const mobileNav = (page: Page) => page.locator("#mobile-nav");
 
 const focusedHref = (page: Page) =>

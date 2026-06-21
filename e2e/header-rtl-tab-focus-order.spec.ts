@@ -141,7 +141,7 @@ test.describe("RTL Tab focus order — mobile header & menu", () => {
   });
 
   test("With menu open, Tab walks links in DOM order and each is reported active", async ({ page }) => {
-    const toggle = page.getByRole("button", { name: "תפריט" });
+    const toggle = page.getByRole("button", { name: "תפריט", exact: true });
     await toggle.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("#mobile-nav")).toBeVisible();
@@ -161,7 +161,7 @@ test.describe("RTL Tab focus order — mobile header & menu", () => {
   });
 
   test('Mobile: "אודות" link is active just before Enter activates it', async ({ page }) => {
-    const toggle = page.getByRole("button", { name: "תפריט" });
+    const toggle = page.getByRole("button", { name: "תפריט", exact: true });
     await toggle.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("#mobile-nav")).toBeVisible();
@@ -194,7 +194,7 @@ test.describe("RTL Tab focus order — mobile header & menu", () => {
   });
 
   test("Shift+Tab inside the open menu walks back through links in reverse DOM order", async ({ page }) => {
-    const toggle = page.getByRole("button", { name: "תפריט" });
+    const toggle = page.getByRole("button", { name: "תפריט", exact: true });
     await toggle.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("#mobile-nav")).toBeVisible();
