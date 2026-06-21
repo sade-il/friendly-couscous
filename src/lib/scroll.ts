@@ -9,7 +9,8 @@ const MAX_ALIGNMENT_RETRIES = 3;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const getScrollTarget = (id: string) => {
   const section = document.getElementById(id);
@@ -19,6 +20,9 @@ const getScrollTarget = (id: string) => {
 
 const getHeaderOffset = () => {
   const header = document.querySelector("header");
+  // The sticky visual bar lives in the header's direct `.container` child; use
+  // that element so the offset matches the clickable nav surface, not the
+  // header wrapper that also includes the mobile panel when it is expanded.
   const stickyBar = header?.querySelector(":scope > .container");
   if (stickyBar instanceof HTMLElement) return stickyBar.getBoundingClientRect().bottom;
   return header instanceof HTMLElement ? header.getBoundingClientRect().bottom : HEADER_OFFSET;
