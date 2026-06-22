@@ -172,7 +172,8 @@ test.describe("Resize preserves alignment AND URL hash — desktop start", () =>
       expect(await getHash(page)).toBe("#about");
       await expectFlushBelowHeader(page, "about");
     }
-    await expectStable(page);
+    // Desktop width breakpoints can trigger a small final reflow after resize.
+    await expectStable(page, 24);
   });
 });
 

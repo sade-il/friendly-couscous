@@ -8,10 +8,10 @@ export default defineConfig({
   // Vite dev server, so under contention they can briefly exceed 30s. A 60s
   // budget absorbs that without masking real hangs.
   timeout: 60_000,
-  // Run several workers on CI so the 334-test suite finishes within the job
-  // budget. The specs are client-side (form validation, focus, tab order,
-  // toasts, hash nav) and share no server state, so parallelism is safe.
-  workers: process.env.CI ? 4 : undefined,
+  // Keep CI parallelism moderate: 4 workers on shared runners caused frequent
+  // 5s wait/assertion timeouts (scroll settle + toast visibility) under load.
+  // 2 workers trades a small runtime increase for much better stability.
+  workers: process.env.CI ? 2 : undefined,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI
