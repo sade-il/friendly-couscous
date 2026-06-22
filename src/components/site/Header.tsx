@@ -192,6 +192,9 @@ export const Header = () => {
                   onClick={(e) => {
                     scrollToHash(e, l.href);
                     setOpen(false);
+                    // Closing the menu unmounts these links; return focus to the
+                    // toggle so it lands somewhere predictable (not <body>).
+                    menuButtonRef.current?.focus();
                   }}
                   aria-current={isActive ? "page" : undefined}
                   className={`t-body px-3 py-3 rounded-md border-r-2 transition-smooth ${

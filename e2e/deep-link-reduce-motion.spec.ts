@@ -53,6 +53,21 @@ const expectFlushBelowHeader = async (page: Page, id: string) => {
 };
 
 const expectStable = async (page: Page) => {
+  // Let late layout shifts (lazy content / fonts below a bottom section like
+  // #contact) settle first so they don't masquerade as scroll drift.
+  await page
+    .waitForFunction(
+      () => {
+        const w = window as Window & { __lastH?: number };
+        const h = document.documentElement.scrollHeight;
+        const stable = w.__lastH === h;
+        w.__lastH = h;
+        return stable;
+      },
+      undefined,
+      { timeout: 3000, polling: 200 }
+    )
+    .catch(() => {});
   const y1 = await page.evaluate(() => window.scrollY);
   await page.waitForTimeout(500);
   const y2 = await page.evaluate(() => window.scrollY);

@@ -29,7 +29,7 @@ const submitForm = (page: Page) =>
   page.getByRole("button", { name: /שליחת פנייה/ }).click();
 
 const toast = (page: Page) =>
-  page.locator('[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
+  page.locator('ol').locator('li[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
 
 const actionBtn = (page: Page) =>
   toast(page).getByRole("button", { name: "עבור לסיכום" });

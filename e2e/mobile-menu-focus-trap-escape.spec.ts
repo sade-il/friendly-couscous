@@ -48,7 +48,9 @@ test.describe("Mobile menu — focus cannot escape the trap while open", () => {
 
     await menuButton(page).focus();
     // Walk well past one full cycle to make sure focus never escapes
-    const steps = (linkCount + 1) * 3;
+    // One full cycle (toggle + links) plus a margin is enough to prove the trap
+    // wraps; *3 was ~48 round-trips and could tip over the timeout under load.
+    const steps = linkCount + 4;
     for (let i = 0; i < steps; i++) {
       await page.keyboard.press("Tab");
       expect(await isInsideTrap(page)).toBe(true);
@@ -62,7 +64,9 @@ test.describe("Mobile menu — focus cannot escape the trap while open", () => {
     const linkCount = await mobileNav(page).getByRole("link").count();
     await menuButton(page).focus();
 
-    const steps = (linkCount + 1) * 3;
+    // One full cycle (toggle + links) plus a margin is enough to prove the trap
+    // wraps; *3 was ~48 round-trips and could tip over the timeout under load.
+    const steps = linkCount + 4;
     for (let i = 0; i < steps; i++) {
       await page.keyboard.press("Shift+Tab");
       expect(await isInsideTrap(page)).toBe(true);

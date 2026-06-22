@@ -199,8 +199,9 @@ test.describe("RTL Tab focus order — mobile header & menu", () => {
     await page.keyboard.press("Enter");
     await expect(page.locator("#mobile-nav")).toBeVisible();
 
-    // Walk forward to the LAST link
-    const lastLabel = HEADER_LINK_LABELS[HEADER_LINK_LABELS.length - 1];
+    // Walk forward to the LAST link. The predicate runs in the browser via
+    // page.evaluate, which does NOT capture closure variables — so the last
+    // label ("צור קשר") must be a literal inside the function body.
     const reachedLast = await tabUntil(
       page,
       () => {
@@ -209,7 +210,7 @@ test.describe("RTL Tab focus order — mobile header & menu", () => {
           !!el &&
           el.tagName === "A" &&
           !!el.closest("#mobile-nav") &&
-          (el.textContent || "").includes(lastLabel)
+          (el.textContent || "").includes("צור קשר")
         );
       },
       HEADER_LINK_LABELS.length + 4

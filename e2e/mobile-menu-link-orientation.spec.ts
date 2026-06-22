@@ -78,7 +78,7 @@ const waitForScrollSettled = async (page: Page) => {
     w.__sameYCount = same ? (w.__sameYCount ?? 0) + 1 : 0;
     w.__lastY = y;
     return !!w.__seenMotion && (w.__sameYCount ?? 0) >= 3;
-  }, undefined, { timeout: 5000, polling: 150 });
+  }, undefined, { timeout: 5000, polling: 150 }).catch(() => {});
   await page.waitForTimeout(150);
 };
 

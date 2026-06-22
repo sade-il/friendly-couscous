@@ -50,7 +50,9 @@ test.describe("Mobile menu — focus trap when open", () => {
 
     const f = await focusedHref(page);
     expect(f?.tag).toBe("a");
-    expect(f?.href).toBe("#contact"); // last link in the menu
+    // The mobile nav ends with the LanguageSwitcher links (HE/RU/EN/FR), so the
+    // true last focusable in the trap is the FR language link, not #contact.
+    expect(f?.href).toBe("/fr");
   });
 
   test("Shift+Tab from the first link returns focus to the toggle button", async ({ page }) => {

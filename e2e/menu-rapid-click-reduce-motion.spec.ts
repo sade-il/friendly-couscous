@@ -140,7 +140,8 @@ test.describe("reduce-motion + rapid desktop clicks settle on the LAST target", 
   test("Desktop reduce: 4 rapid clicks end aligned with #contact", async ({ page }) => {
     await desktopLink(page, "שירותים").click();
     await page.waitForTimeout(30);
-    await desktopLink(page, "פרויקטים").click();
+    // In-page hash section instead of "פרויקטים" (a /projects route link).
+    await desktopLink(page, "המלצות").click();
     await page.waitForTimeout(30);
     await desktopLink(page, "אודות").click();
     await page.waitForTimeout(30);
