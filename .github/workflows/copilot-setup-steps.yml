@@ -29,9 +29,16 @@ jobs:
           if [ -z "$default_branch" ]; then
             default_branch="$(git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2; exit}')"
           fi
+          if [ -z "$default_branch" ]; then
+            echo "Could not determine the repository default branch for Copilot diffing" >&2
+            exit 1
+          fi
 
           if [ -f .git/shallow ]; then
-            git fetch --no-tags --prune --unshallow origin
+            if ! git fetch --no-tags --prune --unshallow origin; then
+              echo "Failed to unshallow repository for Copilot diffing" >&2
+              exit 1
+            fi
           fi
 
           refs=()
