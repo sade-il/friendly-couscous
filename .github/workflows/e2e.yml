@@ -10,7 +10,7 @@ jobs:
   playwright:
     name: Playwright (chromium)
     # The full 334-test suite (now that it actually runs end-to-end) needs more
-    # than the original 15 min; with workers:4 in playwright.config.ts it
+    # than the original 15 min; with workers:2 in playwright.config.ts it
     # finishes comfortably inside this budget.
     timeout-minutes: 30
     runs-on: ubuntu-latest
