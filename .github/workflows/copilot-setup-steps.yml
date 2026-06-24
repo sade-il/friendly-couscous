@@ -1,0 +1,32 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Fetch default branch ref for Copilot diffing
+        run: |
+          set -euo pipefail
+          default_branch="${{ github.event.repository.default_branch || '' }}"
+          if [ -z "$default_branch" ]; then
+            default_branch="$(git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2; exit}')"
+          fi
+          if [ -z "$default_branch" ]; then
+            echo "Could not determine the repository default branch" >&2
+            exit 1
+          fi
+          git fetch --no-tags origin "+refs/heads/${default_branch}:refs/heads/${default_branch}"
