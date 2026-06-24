@@ -29,4 +29,9 @@ jobs:
             echo "Could not determine the repository default branch" >&2
             exit 1
           fi
-          git fetch --no-tags origin "+refs/heads/${default_branch}:refs/heads/${default_branch}"
+          current_branch="$(git rev-parse --abbrev-ref HEAD)"
+          if [ "$current_branch" = "$default_branch" ]; then
+            echo "Already on default branch '${default_branch}', skipping fetch."
+          else
+            git fetch --no-tags origin "+refs/heads/${default_branch}:refs/heads/${default_branch}"
+          fi
