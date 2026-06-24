@@ -61,6 +61,7 @@ jobs:
               echo "Invalid branch name for Copilot diffing: '$branch'" >&2
               exit 1
             fi
+            # Never fetch directly into a checked-out local branch.
             if [ "$branch" = "$current_branch" ]; then
               dest_ref="refs/remotes/origin/${branch}"
             else
