@@ -42,9 +42,7 @@ jobs:
           fi
 
           refs=()
-          if [ -n "$default_branch" ]; then
-            refs+=("+refs/heads/${default_branch}:refs/remotes/origin/${default_branch}")
-          fi
+          refs+=("+refs/heads/${default_branch}:refs/remotes/origin/${default_branch}")
           if [ -n "$current_branch" ] && [ "$current_branch" != "$default_branch" ]; then
             refs+=("+refs/heads/${current_branch}:refs/remotes/origin/${current_branch}")
           fi
