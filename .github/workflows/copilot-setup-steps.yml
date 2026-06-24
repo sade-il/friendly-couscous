@@ -44,23 +44,30 @@ jobs:
           refs=()
           add_ref() {
             local refspec="$1"
-            for existing in "${refs[@]}"; do
-              if [ "$existing" = "$refspec" ]; then
-                return
-              fi
-            done
+            if [ "${#refs[@]}" -gt 0 ]; then
+              for existing in "${refs[@]}"; do
+                if [ "$existing" = "$refspec" ]; then
+                  return
+                fi
+              done
+            fi
             refs+=("$refspec")
           }
-          add_ref "+refs/heads/${default_branch}:refs/remotes/origin/${default_branch}"
-          if [ -n "$current_branch" ]; then
-            add_ref "+refs/heads/${current_branch}:refs/remotes/origin/${current_branch}"
-          fi
-          if [ -n "$base_ref" ]; then
-            add_ref "+refs/heads/${base_ref}:refs/remotes/origin/${base_ref}"
-          fi
-          if [ -n "$head_ref" ]; then
-            add_ref "+refs/heads/${head_ref}:refs/remotes/origin/${head_ref}"
-          fi
+          add_branch_ref() {
+            local branch="$1"
+            if [ -z "$branch" ]; then
+              return
+            fi
+            if ! git check-ref-format --branch "$branch" >/dev/null 2>&1; then
+              echo "Invalid branch name for Copilot diffing: '$branch'" >&2
+              exit 1
+            fi
+            add_ref "+refs/heads/${branch}:refs/remotes/origin/${branch}"
+          }
+          add_branch_ref "$default_branch"
+          add_branch_ref "$current_branch"
+          add_branch_ref "$base_ref"
+          add_branch_ref "$head_ref"
           if [ "${#refs[@]}" -gt 0 ]; then
             git fetch --no-tags --prune origin "${refs[@]}"
           fi
