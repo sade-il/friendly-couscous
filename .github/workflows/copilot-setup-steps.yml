@@ -44,17 +44,16 @@ jobs:
           refs=()
           add_ref() {
             local refspec="$1"
-            if [ "${#refs[@]}" -gt 0 ]; then
-              for existing in "${refs[@]}"; do
-                if [ "$existing" = "$refspec" ]; then
-                  return
-                fi
-              done
-            fi
+            for existing in "${refs[@]}"; do
+              if [ "$existing" = "$refspec" ]; then
+                return
+              fi
+            done
             refs+=("$refspec")
           }
           add_branch_ref() {
             local branch="$1"
+            local dest_ref=""
             if [ -z "$branch" ]; then
               return
             fi
@@ -62,7 +61,12 @@ jobs:
               echo "Invalid branch name for Copilot diffing: '$branch'" >&2
               exit 1
             fi
-            add_ref "+refs/heads/${branch}:refs/remotes/origin/${branch}"
+            if [ "$branch" = "$current_branch" ]; then
+              dest_ref="refs/remotes/origin/${branch}"
+            else
+              dest_ref="refs/heads/${branch}"
+            fi
+            add_ref "+refs/heads/${branch}:${dest_ref}"
           }
           add_branch_ref "$default_branch"
           add_branch_ref "$current_branch"
