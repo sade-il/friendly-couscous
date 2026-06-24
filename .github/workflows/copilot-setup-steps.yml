@@ -25,5 +25,8 @@ jobs:
           if [ -z "$default_branch" ]; then
             default_branch="$(git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2; exit}')"
           fi
-          default_branch="${default_branch:-main}"
+          if [ -z "$default_branch" ]; then
+            echo "Could not determine the repository default branch" >&2
+            exit 1
+          fi
           git fetch --no-tags origin "+refs/heads/${default_branch}:refs/heads/${default_branch}"
