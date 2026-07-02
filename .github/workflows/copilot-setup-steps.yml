@@ -72,7 +72,9 @@ jobs:
           add_branch_ref "$default_branch"
           add_branch_ref "$current_branch"
           add_branch_ref "$base_ref"
-          add_branch_ref "$head_ref"
+          if [ -n "$head_ref" ] && git check-ref-format --branch "$head_ref" >/dev/null 2>&1 && git ls-remote --exit-code --heads origin "refs/heads/${head_ref}" >/dev/null 2>&1; then
+            add_branch_ref "$head_ref"
+          fi
           if [ "${#refs[@]}" -gt 0 ]; then
             git fetch --no-tags --prune origin "${refs[@]}"
           fi
