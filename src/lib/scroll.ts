@@ -46,9 +46,9 @@ export const scrollToId = (
   const anchor = scrollAnchorForId(id);
   if (!anchor) {
     // Section not mounted yet (lazy-loaded chunk). Retry until it appears.
-    let retriesRemaining = ALIGN_RETRIES;
+    let mountRetries = ALIGN_RETRIES;
     const retry = () => {
-      if (--retriesRemaining < 0) return;
+      if (--mountRetries < 0) return;
       const a = scrollAnchorForId(id);
       if (!a) return void setTimeout(retry, ALIGN_DELAY_MS);
       applyScroll(a, behavior);
@@ -91,14 +91,14 @@ export const alignToCurrentHash = (): (() => void) => {
   if (!id) return () => {};
 
   let cancelled = false;
-  let waitRetries = 0;
+  let mountRetries = ALIGN_RETRIES;
   let tries = 0;
   const run = () => {
     if (cancelled) return;
     const anchor = scrollAnchorForId(id);
     if (!anchor) {
       // Lazy-loaded section not mounted yet; keep polling until it appears.
-      if (++waitRetries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
+      if (--mountRetries > 0) setTimeout(run, ALIGN_DELAY_MS);
       return;
     }
     const delta = anchor.getBoundingClientRect().top - headerOffset() - HEADER_GAP;
