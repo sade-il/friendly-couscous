@@ -48,9 +48,11 @@ export const scrollToId = (
     // Section not mounted yet (lazy-loaded chunk). Retry until it appears.
     let mountRetries = ALIGN_RETRIES;
     const retry = () => {
-      if (--mountRetries < 0) return;
       const a = scrollAnchorForId(id);
-      if (!a) return void setTimeout(retry, ALIGN_DELAY_MS);
+      if (!a) {
+        if (--mountRetries > 0) setTimeout(retry, ALIGN_DELAY_MS);
+        return;
+      }
       applyScroll(a, behavior);
     };
     setTimeout(retry, ALIGN_DELAY_MS);
