@@ -41,7 +41,7 @@ export const Footer = () => (
       </div>
 
       <div>
-        <h4 className="t-h3 mb-4 text-accent">ניווט</h4>
+        <h3 className="t-h3 mb-4 text-accent">ניווט</h3>
         <ul className="space-y-2 text-sm text-primary-foreground/80">
           <li><a className="hover:text-accent transition-smooth" href="#services" onClick={(e) => scrollToHash(e, "#services")}>שירותים</a></li>
           <li><a className="hover:text-accent transition-smooth" href="/projects">פרויקטים</a></li>
@@ -53,7 +53,7 @@ export const Footer = () => (
       </div>
 
       <div>
-        <h4 className="t-h3 mb-4 text-accent">שירותים</h4>
+        <h3 className="t-h3 mb-4 text-accent">שירותים</h3>
         <ul className="space-y-2 text-sm text-primary-foreground/80">
           <li><a className="hover:text-accent transition-smooth" href="/services/pergola-approval">אישור פרגולה</a></li>
           <li><a className="hover:text-accent transition-smooth" href="/services/interior-changes">שינויים פנימיים</a></li>
@@ -65,7 +65,7 @@ export const Footer = () => (
 
 
       <div>
-        <h4 className="t-h3 mb-4 text-accent">יצירת קשר</h4>
+        <h3 className="t-h3 mb-4 text-accent">יצירת קשר</h3>
         <ul className="space-y-3 text-sm text-primary-foreground/85">
           <li className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-teal" />

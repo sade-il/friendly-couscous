@@ -17,7 +17,7 @@ export const ServiceAreas = () => (
               המשרד מספק שירותי קונסטרוקטור, תכנון שלד, אישורי מהנדס וחוות דעת הנדסיות
               בראשון לציון, פתח תקווה, תל אביב, חולון, בת ים, רחובות, נס ציונה, רמת גן,
               גבעתיים ובאזור המרכז. לחצו על עיר כדי לעבור לעמוד הייעודי שלה — או צפו ב
-              <Link to="/areas" className="text-teal hover:underline mx-1">כל אזורי השירות</Link>.
+              <Link to="/areas" className="text-teal underline underline-offset-2 hover:no-underline mx-1">כל אזורי השירות</Link>.
             </p>
             <ul className="mt-5 flex flex-wrap gap-2" aria-label="ערים עיקריות באזור השירות">
               {AREAS.map((a) => (
