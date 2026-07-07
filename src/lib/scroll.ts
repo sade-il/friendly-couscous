@@ -28,13 +28,30 @@ const prefersReducedMotion = () =>
  * Scroll a section (`#id`) flush below the sticky header. Shared by the nav
  * click handler and the deep-link / hashchange handler so both paths use the
  * exact same offset and easing. Returns true if the target existed.
+ *
+ * When the target element is not yet in the DOM (e.g. a React.lazy section
+ * that hasn't finished loading), the scroll is deferred and retried
+ * automatically so that lazy-loaded sections land correctly.
  */
 export const scrollToId = (
   id: string,
   behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth"
 ): boolean => {
   const anchor = scrollAnchorForId(id);
-  if (!anchor) return false;
+  if (!anchor) {
+    // Section not mounted yet (lazy-loaded chunk). Retry until it appears.
+    let retries = ALIGN_RETRIES;
+    const retry = () => {
+      if (--retries < 0) return;
+      const a = scrollAnchorForId(id);
+      if (!a) return void setTimeout(retry, ALIGN_DELAY_MS);
+      const t = a.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
+      if (behavior === "auto") window.scrollTo(0, Math.max(t, 0));
+      else window.scrollTo({ top: Math.max(t, 0), behavior });
+    };
+    setTimeout(retry, ALIGN_DELAY_MS);
+    return false;
+  }
   const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
   if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
   else window.scrollTo({ top: Math.max(top, 0), behavior });
@@ -72,11 +89,16 @@ export const alignToCurrentHash = (): (() => void) => {
   if (!id) return () => {};
 
   let cancelled = false;
+  let waitTries = 0;
   let tries = 0;
   const run = () => {
     if (cancelled) return;
     const anchor = scrollAnchorForId(id);
-    if (!anchor) return;
+    if (!anchor) {
+      // Lazy-loaded section not mounted yet; keep polling until it appears.
+      if (++waitTries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
+      return;
+    }
     const delta = anchor.getBoundingClientRect().top - headerOffset() - HEADER_GAP;
     if (Math.abs(delta) <= ALIGN_TOLERANCE) return;
 

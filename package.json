@@ -19,11 +19,9 @@
     "test:coverage": "vitest run --coverage src/test/redirect-",
     "test:redirect": "vitest run src/test/redirect-",
     "verify:coverage-artifact": "bash scripts/verify-coverage-artifact.sh",
-
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "check:canonical": "bunx tsx scripts/check-canonical.ts"
-
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -104,5 +102,10 @@
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
     "vitest": "^3.2.4"
+  },
+  "allowScripts": {
+    "@swc/core@1.13.2": true,
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.0": true
   }
 }
