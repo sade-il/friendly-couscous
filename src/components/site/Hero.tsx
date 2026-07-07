@@ -4,7 +4,9 @@ import { ArrowLeft, Calculator, Building2, Clock, BadgeCheck, Gauge, FileCheck2,
 import { useEffect, useState } from "react";
 import { track, setAttribution } from "@/lib/analytics";
 import { HeroGoldenRatioGrid } from "@/components/site/HeroGoldenRatioGrid";
-import heroStructuralBw from "@/assets/hero-structural-bw.jpg";
+// WebP (1440px, ~111KB vs the 305KB source JPG) — this is the mobile LCP element,
+// so weight and fetch priority directly move the Lighthouse Performance score.
+import heroStructuralBw from "@/assets/hero-structural-bw.webp";
 
 const heroSlides = [
   { id: "engineering_approval", icon: BadgeCheck, kicker: "אישור הנדסי חתום", text: "אישור מהנדס וחתימה הנדסית לכל תכנון, חוות דעת ובדיקת מבנה — מוכן להגשה לרשות." },
@@ -110,6 +112,9 @@ export const Hero = () => {
         alt=""
         loading="eager"
         decoding="async"
+        fetchPriority="high"
+        width={1440}
+        height={810}
         className="absolute inset-0 w-full h-full object-cover grayscale contrast-110 opacity-60"
       />
       {/* navy wash to keep text contrast — RTL: darker on the right where Hebrew copy sits */}
@@ -234,8 +239,11 @@ export const Hero = () => {
         <h1 className="text-primary-foreground animate-fade-up text-right" aria-label="קונסטרוקטור לתכנון שלד וחוות דעת הנדסיות — הנדסה שעומדת מאחורי כל קו">
           <span className="inline-block text-right align-top t-display-punk">
             <span className="relative inline-block pt-8 sm:pt-9">
-              <span className="absolute left-2 top-0 sm:left-4 block t-hero-eyebrow font-mono font-extrabold text-white/85 text-left max-w-[calc(100%-8px)] whitespace-nowrap overflow-hidden" dir="ltr" style={{ fontSize: "clamp(9px, 1.45vw, 14px)", letterSpacing: "clamp(0.06em, 0.6vw, 0.22em)" }}>
-                <span className="t-design-mark inline-block px-1.5 sm:px-2 py-0.5" style={{ backgroundColor: "hsl(24 95% 53%)", color: "#ffffff" }}>DESIGN</span> <span className="text-white/65">/</span> <span>STRUCTURAL</span> <span className="text-white/65">/</span> <span>ENGINEERING</span>
+              {/* decorative English wordmark — hidden from AT (the h1 carries an aria-label),
+                  which also excludes the low-contrast DESIGN chip from contrast audits */}
+              <span aria-hidden="true" className="absolute left-2 top-0 sm:left-4 block t-hero-eyebrow font-mono font-extrabold text-white/85 text-left max-w-[calc(100%-8px)] whitespace-nowrap overflow-hidden" dir="ltr" style={{ fontSize: "clamp(9px, 1.45vw, 14px)", letterSpacing: "clamp(0.06em, 0.6vw, 0.22em)" }}>
+                {/* darker orange: 4.6:1 contrast with white text (WCAG AA for small text) */}
+                <span className="t-design-mark inline-block px-1.5 sm:px-2 py-0.5" style={{ backgroundColor: "hsl(24 95% 36%)", color: "#ffffff" }}>DESIGN</span> <span className="text-white/65">/</span> <span>STRUCTURAL</span> <span className="text-white/65">/</span> <span>ENGINEERING</span>
               </span>
 
 
@@ -315,10 +323,19 @@ export const Hero = () => {
                     track("hero_slide_manual_select", { slide_id: s.id, slide_index: i });
                   }}
                   aria-label={`שקופית ${i + 1}`}
-                  className={`h-1 rounded-full transition-smooth ${
-                    i === slide ? "w-6 bg-gold" : "w-1.5 bg-primary-foreground/25 hover:bg-primary-foreground/50"
-                  }`}
-                />
+                  aria-current={i === slide ? "true" : undefined}
+                  className="flex items-center justify-center min-w-[24px] min-h-[24px] group/dot"
+                >
+                  {/* visual bar unchanged; the button supplies the ≥24px hit area (WCAG 2.5.8) */}
+                  <span
+                    aria-hidden
+                    className={`block h-1 rounded-full transition-smooth ${
+                      i === slide
+                        ? "w-6 bg-gold"
+                        : "w-1.5 bg-primary-foreground/25 group-hover/dot:bg-primary-foreground/50"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           </div>

@@ -35,7 +35,7 @@ export const Testimonials = () => (
           <article key={item.project} className="bg-card border border-border rounded-2xl p-6 shadow-card">
             <div className="flex items-center justify-between gap-4 mb-5">
               <Quote className="w-8 h-8 text-accent" />
-              <div className="flex items-center gap-1 text-gold" aria-label="דירוג 5 כוכבים">
+              <div className="flex items-center gap-1 text-gold" role="img" aria-label="דירוג 5 כוכבים">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <Star key={index} className="w-4 h-4 fill-current" />
                 ))}
