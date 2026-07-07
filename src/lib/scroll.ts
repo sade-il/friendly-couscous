@@ -24,6 +24,12 @@ const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+const applyScroll = (anchor: Element, behavior: ScrollBehavior) => {
+  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
+  if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
+  else window.scrollTo({ top: Math.max(top, 0), behavior });
+};
+
 /**
  * Scroll a section (`#id`) flush below the sticky header. Shared by the nav
  * click handler and the deep-link / hashchange handler so both paths use the
@@ -40,21 +46,17 @@ export const scrollToId = (
   const anchor = scrollAnchorForId(id);
   if (!anchor) {
     // Section not mounted yet (lazy-loaded chunk). Retry until it appears.
-    let retries = ALIGN_RETRIES;
+    let retriesRemaining = ALIGN_RETRIES;
     const retry = () => {
-      if (--retries < 0) return;
+      if (--retriesRemaining < 0) return;
       const a = scrollAnchorForId(id);
       if (!a) return void setTimeout(retry, ALIGN_DELAY_MS);
-      const t = a.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
-      if (behavior === "auto") window.scrollTo(0, Math.max(t, 0));
-      else window.scrollTo({ top: Math.max(t, 0), behavior });
+      applyScroll(a, behavior);
     };
     setTimeout(retry, ALIGN_DELAY_MS);
     return false;
   }
-  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
-  if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
-  else window.scrollTo({ top: Math.max(top, 0), behavior });
+  applyScroll(anchor, behavior);
   return true;
 };
 
@@ -89,14 +91,14 @@ export const alignToCurrentHash = (): (() => void) => {
   if (!id) return () => {};
 
   let cancelled = false;
-  let waitTries = 0;
+  let waitRetries = 0;
   let tries = 0;
   const run = () => {
     if (cancelled) return;
     const anchor = scrollAnchorForId(id);
     if (!anchor) {
       // Lazy-loaded section not mounted yet; keep polling until it appears.
-      if (++waitTries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
+      if (++waitRetries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
       return;
     }
     const delta = anchor.getBoundingClientRect().top - headerOffset() - HEADER_GAP;
