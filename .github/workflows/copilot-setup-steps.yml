@@ -27,7 +27,7 @@ jobs:
             default_branch="$(git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2; exit}')"
           fi
           if [ -z "$default_branch" ]; then
-            echo "Could not determine the repository default branch" >&2
+            echo "Could not determine the repository default branch for Copilot diffing" >&2
             exit 1
           fi
           target_ref="refs/heads/${default_branch}"

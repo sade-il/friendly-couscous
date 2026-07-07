@@ -5,22 +5,43 @@ import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { Hero } from "@/components/site/Hero";
 import { Services } from "@/components/site/Services";
 
-import { Calculators } from "@/components/site/Calculators";
-import { Prepare } from "@/components/site/Prepare";
-import { About } from "@/components/site/About";
-import { Testimonials } from "@/components/site/Testimonials";
-import { Charter } from "@/components/site/Charter";
 import { Faq, faqs } from "@/components/site/Faq";
-import { ServiceAreas } from "@/components/site/ServiceAreas";
-import { Contact } from "@/components/site/Contact";
 import { Disclaimer } from "@/components/site/Disclaimer";
 import { Footer } from "@/components/site/Footer";
 import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
 import { AccessibilityWidget } from "@/components/site/AccessibilityWidget";
 import { Seo } from "@/components/site/Seo";
 import { useScrollDepthTracking } from "@/hooks/use-scroll-depth-tracking";
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { alignToCurrentHash } from "@/lib/scroll";
+
+// Below-the-fold home sections are code-split so the critical bundle stays
+// small — mobile FCP/LCP/TBT (Lighthouse Performance) are gated on initial JS.
+// The chunks start loading immediately on mount (React.lazy fetches on render,
+// not on scroll), so crawlers and deep links still get the full page; the
+// hash-alignment retry in alignToCurrentHash absorbs the late mount.
+// Faq stays eager: its `faqs` data feeds the FAQPage JSON-LD above.
+const Calculators = lazy(() =>
+  import("@/components/site/Calculators").then((m) => ({ default: m.Calculators })),
+);
+const Prepare = lazy(() =>
+  import("@/components/site/Prepare").then((m) => ({ default: m.Prepare })),
+);
+const About = lazy(() =>
+  import("@/components/site/About").then((m) => ({ default: m.About })),
+);
+const Testimonials = lazy(() =>
+  import("@/components/site/Testimonials").then((m) => ({ default: m.Testimonials })),
+);
+const Charter = lazy(() =>
+  import("@/components/site/Charter").then((m) => ({ default: m.Charter })),
+);
+const ServiceAreas = lazy(() =>
+  import("@/components/site/ServiceAreas").then((m) => ({ default: m.ServiceAreas })),
+);
+const Contact = lazy(() =>
+  import("@/components/site/Contact").then((m) => ({ default: m.Contact })),
+);
 
 const SITE_URL = "https://sade-il.com/";
 
@@ -157,15 +178,15 @@ const Index = () => {
       <main id="main-content" tabIndex={-1}>
         <Hero />
         <Services />
-        
-        <Calculators />
-        <Prepare />
-        <About />
-        <Testimonials />
-        <Charter />
+        {/* independent boundaries so each section streams in as its chunk lands */}
+        <Suspense fallback={null}><Calculators /></Suspense>
+        <Suspense fallback={null}><Prepare /></Suspense>
+        <Suspense fallback={null}><About /></Suspense>
+        <Suspense fallback={null}><Testimonials /></Suspense>
+        <Suspense fallback={null}><Charter /></Suspense>
         <Faq />
-        <ServiceAreas />
-        <Contact />
+        <Suspense fallback={null}><ServiceAreas /></Suspense>
+        <Suspense fallback={null}><Contact /></Suspense>
         <Disclaimer />
       </main>
       <Footer />

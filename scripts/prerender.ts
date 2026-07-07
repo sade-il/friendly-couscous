@@ -17,7 +17,7 @@
  * Source of truth: the ROUTES array below. Helmet (in <Seo>) still owns the
  * runtime <head> for users with JS, so SPA navigation keeps working.
  */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 // Pure, React-free schema objects shared with src/components/site/Seo.tsx.
 // RELATIVE import on purpose — tsx does not resolve the "@/" alias.
@@ -259,8 +259,26 @@ async function main() {
     console.warn("⚠ dist/index.html doesn't look like a Vite build (no /assets/ script). Continuing anyway.");
   }
 
+  // The hero image is the mobile LCP element on the home page. Its Vite hash
+  // changes every build, so resolve the emitted filename here and preload it
+  // in the static head — the browser then fetches it in parallel with the JS
+  // bundle instead of discovering it only after React mounts.
+  let heroPreloadTag = "";
+  try {
+    const assets = await readdir(resolve(DIST, "assets"));
+    const hero = assets.find((f) => /^hero-structural-bw-.*\.webp$/.test(f));
+    if (hero) {
+      heroPreloadTag = `<link rel="preload" as="image" href="/assets/${hero}" fetchpriority="high" />`;
+    }
+  } catch {
+    /* assets dir missing — skip preload */
+  }
+
   for (const route of ROUTES) {
-    const stamped = stampHead(shell, route);
+    let stamped = stampHead(shell, route);
+    if (route.path === "/" && heroPreloadTag) {
+      stamped = stamped.replace(/<\/head>/i, `    ${heroPreloadTag}\n  </head>`);
+    }
     const out =
       route.path === "/"
         ? resolve(DIST, "index.html")

@@ -15,7 +15,7 @@ export const FloatingWhatsApp = () => (
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => openWhatsApp(e, TEXT)}
-      aria-label="שליחת הודעת WhatsApp"
+      aria-label="דברו איתנו ב-WhatsApp"
       className="relative group block rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background touch-manipulation"
     >
       <span className="absolute inset-0 rounded-full bg-whatsapp/25 animate-ping" aria-hidden />
