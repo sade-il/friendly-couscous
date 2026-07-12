@@ -76,7 +76,12 @@ export const alignToCurrentHash = (): (() => void) => {
   const run = () => {
     if (cancelled) return;
     const anchor = scrollAnchorForId(id);
-    if (!anchor) return;
+    if (!anchor) {
+      // Target section not yet in DOM (lazy-loaded chunk still resolving) — keep
+      // polling so alignment fires as soon as the element mounts.
+      if (++tries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
+      return;
+    }
     const delta = anchor.getBoundingClientRect().top - headerOffset() - HEADER_GAP;
     if (Math.abs(delta) <= ALIGN_TOLERANCE) return;
 
