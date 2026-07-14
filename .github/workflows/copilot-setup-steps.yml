@@ -22,16 +22,16 @@ jobs:
         run: |
           set -euo pipefail
           default_branch="${{ github.event.repository.default_branch || '' }}"
+          current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
           if [ -z "$default_branch" ]; then
             default_branch="$(git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2; exit}')"
           fi
           if [ -z "$default_branch" ]; then
-            echo "Could not determine the repository default branch" >&2
+            echo "Could not determine the repository default branch for Copilot diffing" >&2
             exit 1
           fi
-          current_branch="$(git rev-parse --abbrev-ref HEAD)"
+          target_ref="refs/heads/${default_branch}"
           if [ "$current_branch" = "$default_branch" ]; then
-            echo "Already on default branch '${default_branch}', skipping fetch."
-          else
-            git fetch --no-tags origin "+refs/heads/${default_branch}:refs/heads/${default_branch}"
+            target_ref="refs/remotes/origin/${default_branch}"
           fi
+          git fetch --no-tags origin "+refs/heads/${default_branch}:${target_ref}"
