@@ -8,6 +8,7 @@ const HEADER_OFFSET = 96;
 const HEADER_GAP = 8;
 const ALIGN_TOLERANCE = 2;
 const ALIGN_RETRIES = 40;
+const MOUNT_RETRIES = 200;
 const ALIGN_DELAY_MS = 30;
 
 const headerOffset = () =>
@@ -46,7 +47,7 @@ export const scrollToId = (
   const anchor = scrollAnchorForId(id);
   if (!anchor) {
     // Section not mounted yet (lazy-loaded chunk). Retry until it appears.
-    let mountRetries = ALIGN_RETRIES;
+    let mountRetries = MOUNT_RETRIES;
     const retry = () => {
       const a = scrollAnchorForId(id);
       if (!a) {
@@ -93,7 +94,7 @@ export const alignToCurrentHash = (): (() => void) => {
   if (!id) return () => {};
 
   let cancelled = false;
-  let mountRetries = ALIGN_RETRIES;
+  let mountRetries = MOUNT_RETRIES;
   let tries = 0;
   const run = () => {
     if (cancelled) return;
