@@ -23,9 +23,6 @@ jobs:
           set -euo pipefail
           default_branch="${{ github.event.repository.default_branch || '' }}"
           current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
-          base_ref="${GITHUB_BASE_REF:-}"
-          head_ref="${GITHUB_HEAD_REF:-}"
-
           if [ -z "$default_branch" ]; then
             default_branch="$(git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2; exit}')"
           fi
@@ -33,48 +30,8 @@ jobs:
             echo "Could not determine the repository default branch for Copilot diffing" >&2
             exit 1
           fi
-
-          if [ -f .git/shallow ]; then
-            if ! git fetch --no-tags --prune --unshallow origin; then
-              echo "Failed to unshallow repository for Copilot diffing" >&2
-              exit 1
-            fi
+          target_ref="refs/heads/${default_branch}"
+          if [ "$current_branch" = "$default_branch" ]; then
+            target_ref="refs/remotes/origin/${default_branch}"
           fi
-
-          refs=()
-          add_ref() {
-            local refspec="$1"
-            for existing in "${refs[@]}"; do
-              if [ "$existing" = "$refspec" ]; then
-                return
-              fi
-            done
-            refs+=("$refspec")
-          }
-          add_branch_ref() {
-            local branch="$1"
-            local dest_ref=""
-            if [ -z "$branch" ]; then
-              return
-            fi
-            if ! git check-ref-format --branch "$branch" >/dev/null 2>&1; then
-              echo "Invalid branch name for Copilot diffing: '$branch'" >&2
-              exit 1
-            fi
-            # Never fetch directly into a checked-out local branch.
-            if [ "$branch" = "$current_branch" ]; then
-              dest_ref="refs/remotes/origin/${branch}"
-            else
-              dest_ref="refs/heads/${branch}"
-            fi
-            add_ref "+refs/heads/${branch}:${dest_ref}"
-          }
-          add_branch_ref "$default_branch"
-          add_branch_ref "$current_branch"
-          add_branch_ref "$base_ref"
-          if [ -n "$head_ref" ] && git check-ref-format --branch "$head_ref" >/dev/null 2>&1 && git ls-remote --exit-code --heads origin "refs/heads/${head_ref}" >/dev/null 2>&1; then
-            add_branch_ref "$head_ref"
-          fi
-          if [ "${#refs[@]}" -gt 0 ]; then
-            git fetch --no-tags --prune origin "${refs[@]}"
-          fi
+          git fetch --no-tags origin "+refs/heads/${default_branch}:${target_ref}"

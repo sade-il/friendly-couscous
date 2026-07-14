@@ -86,8 +86,10 @@ const waitForScrollSettled = async (page: Page) => {
 
 const navigateToSection = async (page: Page, id: string) => {
   await page.evaluate(async (sectionId) => {
-    const { scrollToId } = await import("/src/lib/scroll.ts");
+    const { alignToCurrentHash, scrollToId } = await import("/src/lib/scroll.ts");
+    window.history.replaceState(null, "", `#${sectionId}`);
     scrollToId(sectionId, "auto");
+    alignToCurrentHash();
   }, id);
   await waitForScrollSettled(page);
 };
