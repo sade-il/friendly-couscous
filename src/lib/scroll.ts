@@ -24,20 +24,41 @@ const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+const applyScroll = (anchor: Element, behavior: ScrollBehavior) => {
+  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
+  if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
+  else window.scrollTo({ top: Math.max(top, 0), behavior });
+};
+
 /**
  * Scroll a section (`#id`) flush below the sticky header. Shared by the nav
  * click handler and the deep-link / hashchange handler so both paths use the
  * exact same offset and easing. Returns true if the target existed.
+ *
+ * When the target element is not yet in the DOM (e.g. a React.lazy section
+ * that hasn't finished loading), the scroll is deferred and retried
+ * automatically so that lazy-loaded sections land correctly.
  */
 export const scrollToId = (
   id: string,
   behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth"
 ): boolean => {
   const anchor = scrollAnchorForId(id);
-  if (!anchor) return false;
-  const top = anchor.getBoundingClientRect().top + window.scrollY - headerOffset() - HEADER_GAP;
-  if (behavior === "auto") window.scrollTo(0, Math.max(top, 0));
-  else window.scrollTo({ top: Math.max(top, 0), behavior });
+  if (!anchor) {
+    // Section not mounted yet (lazy-loaded chunk). Retry until it appears.
+    let mountRetries = ALIGN_RETRIES;
+    const retry = () => {
+      const a = scrollAnchorForId(id);
+      if (!a) {
+        if (--mountRetries > 0) setTimeout(retry, ALIGN_DELAY_MS);
+        return;
+      }
+      applyScroll(a, behavior);
+    };
+    setTimeout(retry, ALIGN_DELAY_MS);
+    return false;
+  }
+  applyScroll(anchor, behavior);
   return true;
 };
 
@@ -72,14 +93,14 @@ export const alignToCurrentHash = (): (() => void) => {
   if (!id) return () => {};
 
   let cancelled = false;
+  let mountRetries = ALIGN_RETRIES;
   let tries = 0;
   const run = () => {
     if (cancelled) return;
     const anchor = scrollAnchorForId(id);
     if (!anchor) {
-      // Target section not yet in DOM (lazy-loaded chunk still resolving) — keep
-      // polling so alignment fires as soon as the element mounts.
-      if (++tries < ALIGN_RETRIES) setTimeout(run, ALIGN_DELAY_MS);
+      // Lazy-loaded section not mounted yet; keep polling until it appears.
+      if (--mountRetries > 0) setTimeout(run, ALIGN_DELAY_MS);
       return;
     }
     const delta = anchor.getBoundingClientRect().top - headerOffset() - HEADER_GAP;

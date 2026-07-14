@@ -23,7 +23,6 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "check:canonical": "bunx tsx scripts/check-canonical.ts"
-
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
