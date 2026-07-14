@@ -34,3 +34,6 @@ dist-ssr
 # Google Drive junk
 desktop.ini
 **/desktop.ini
+
+# Claude Code local (per-machine) settings — never commit
+.claude/settings.local.json
