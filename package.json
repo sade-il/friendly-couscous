@@ -22,7 +22,6 @@
     "test:coverage": "vitest run --coverage src/test/redirect-",
     "test:redirect": "vitest run src/test/redirect-",
     "verify:coverage-artifact": "bash scripts/verify-coverage-artifact.sh",
-
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "check:canonical": "bunx tsx scripts/check-canonical.ts"
