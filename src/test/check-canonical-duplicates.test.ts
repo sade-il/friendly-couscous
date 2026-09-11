@@ -24,7 +24,7 @@ describe("hasConflictingDuplicateValues", () => {
     expect(hasConflictingDuplicateValues(["https://sade-il.com/requests-activity"])).toBe(false);
   });
 
-  it("treats unparsable duplicate values consistently", () => {
-    expect(hasConflictingDuplicateValues(["%%%bad-url-1", "%%%bad-url-2"])).toBe(false);
+  it("treats distinct unparsable duplicate values as conflicting", () => {
+    expect(hasConflictingDuplicateValues(["%%%bad-url-1", "%%%bad-url-2"])).toBe(true);
   });
 });
