@@ -3,9 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
-  },
   "scripts": {
     "dev": "vite",
     "predev": "bunx tsx scripts/generate-sitemap.ts",
@@ -105,5 +102,8 @@
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.21",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "rollup": "4.60.0"
   }
 }
