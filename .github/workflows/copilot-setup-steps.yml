@@ -35,6 +35,8 @@ jobs:
             target_ref="refs/remotes/origin/${default_branch}"
           fi
           git fetch --no-tags origin "+refs/heads/${default_branch}:${target_ref}"
-          if ! git show-ref --verify --quiet refs/heads/main; then
-            git branch main "$target_ref"
+          if [ "$current_branch" = "main" ]; then
+            git show-ref --verify --quiet refs/heads/main || git branch main "$target_ref"
+          else
+            git branch -f main "$target_ref"
           fi
