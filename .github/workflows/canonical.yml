@@ -27,6 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
+          cache: npm
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -53,6 +54,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
+          cache: npm
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -319,6 +321,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
+          cache: npm
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -363,6 +366,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.0
+          cache: npm
 
       - uses: oven-sh/setup-bun@v2
         with:
