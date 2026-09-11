@@ -37,4 +37,13 @@ describe("hasConflictingDuplicateValues", () => {
       }),
     ).toBe(false);
   });
+
+  it("treats unparsable duplicate values consistently", () => {
+    expect(
+      hasConflictingDuplicateValues({
+        tagCount: 2,
+        values: ["%%%bad-url-1", "%%%bad-url-2"],
+      }),
+    ).toBe(false);
+  });
 });
