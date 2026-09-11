@@ -14,6 +14,8 @@
  *                  `vite preview` instance.
  */
 
+import { hasConflictingDuplicateValues } from "./canonical-head";
+
 const args = process.argv.slice(2);
 const originIdx = args.indexOf("--origin");
 const ORIGIN_OVERRIDE = originIdx >= 0 ? args[originIdx + 1] : null;
@@ -60,8 +62,8 @@ const match = (tag: RegExp, html: string) => {
   return m ? m[1] : null;
 };
 
-const countMatches = (tag: RegExp, html: string) => {
-  return [...html.matchAll(tag)].length;
+const matches = (tag: RegExp, html: string) => {
+  return [...html.matchAll(tag)].map((m) => m[1]);
 };
 
 const CANONICAL_RE = /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/gi;
@@ -89,14 +91,18 @@ async function checkUrl(expectedUrl: string): Promise<Row> {
     html,
   );
 
-  const canonicalCount = countMatches(CANONICAL_RE, html);
-  const ogUrlCount = countMatches(OG_URL_RE, html);
+  const canonicalValues = matches(CANONICAL_RE, html);
+  const ogUrlValues = matches(OG_URL_RE, html);
 
   if (!res.ok) issues.push(`HTTP ${res.status}`);
   if (!canonical) issues.push("missing <link rel=canonical>");
   if (!ogUrl) issues.push("missing og:url");
-  if (canonicalCount > 1) issues.push(`duplicate <link rel=canonical> (${canonicalCount} found)`);
-  if (ogUrlCount > 1) issues.push(`duplicate og:url (${ogUrlCount} found)`);
+  if (hasConflictingDuplicateValues(canonicalValues)) {
+    issues.push(`conflicting <link rel=canonical> values (${canonicalValues.length} found)`);
+  }
+  if (hasConflictingDuplicateValues(ogUrlValues)) {
+    issues.push(`conflicting og:url values (${ogUrlValues.length} found)`);
+  }
 
   // Canonical must always point at the production URL from the sitemap, even
   // when fetched from a localhost preview.
