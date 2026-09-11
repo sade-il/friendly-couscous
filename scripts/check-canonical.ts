@@ -97,10 +97,10 @@ async function checkUrl(expectedUrl: string): Promise<Row> {
   if (!res.ok) issues.push(`HTTP ${res.status}`);
   if (!canonical) issues.push("missing <link rel=canonical>");
   if (!ogUrl) issues.push("missing og:url");
-  if (hasConflictingDuplicateValues({ tagCount: canonicalValues.length, values: canonicalValues })) {
+  if (hasConflictingDuplicateValues(canonicalValues)) {
     issues.push(`conflicting <link rel=canonical> values (${canonicalValues.length} found)`);
   }
-  if (hasConflictingDuplicateValues({ tagCount: ogUrlValues.length, values: ogUrlValues })) {
+  if (hasConflictingDuplicateValues(ogUrlValues)) {
     issues.push(`conflicting og:url values (${ogUrlValues.length} found)`);
   }
 

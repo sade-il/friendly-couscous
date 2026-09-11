@@ -11,12 +11,7 @@ const normalize = (u: string) => {
   }
 };
 
-type DuplicateTagCheck = {
-  tagCount: number;
-  values: string[];
-};
-
-export const hasConflictingDuplicateValues = ({ tagCount, values }: DuplicateTagCheck) => {
-  if (tagCount <= 1) return false;
+export const hasConflictingDuplicateValues = (values: string[]) => {
+  if (values.length <= 1) return false;
   return new Set(values.map(normalize)).size > 1;
 };
