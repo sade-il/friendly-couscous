@@ -35,6 +35,10 @@ jobs:
             target_ref="refs/remotes/origin/${default_branch}"
           fi
           git fetch --no-tags origin "+refs/heads/${default_branch}:${target_ref}"
-          if [ "$default_branch" != "main" ] && [ "$current_branch" != "main" ]; then
-            git fetch --no-tags origin "+refs/heads/${default_branch}:refs/heads/main"
+          if [ "$default_branch" != "main" ]; then
+            main_ref="refs/heads/main"
+            if [ "$current_branch" = "main" ]; then
+              main_ref="refs/remotes/origin/main"
+            fi
+            git fetch --no-tags origin "+refs/heads/${default_branch}:${main_ref}"
           fi
