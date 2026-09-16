@@ -24,11 +24,15 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
       - name: Regenerate sitemap (ensure it matches ROUTES)
         run: bunx tsx scripts/generate-sitemap.ts
       - name: Validate sitemap structure (no build)
@@ -47,11 +51,15 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
       - name: Run redirect canonicalization tests + coverage gate
         run: bun run test:coverage
       - name: Stage coverage artifact with source for accurate line mapping
@@ -310,13 +318,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
 
       - name: Build (runs generate-sitemap → vite build → prerender → validate-sitemap)
         run: bun run build
@@ -352,13 +363,16 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
 
       - name: Validate canonical tags across live sitemap
         run: bun run check:canonical ${{ github.event.inputs.sitemap || 'https://sade-il.com/sitemap.xml' }}
