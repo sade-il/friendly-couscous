@@ -1,0 +1,30 @@
+import { describe, expect, it } from "vitest";
+import { hasConflictingDuplicateValues } from "../../scripts/canonical-head";
+
+describe("hasConflictingDuplicateValues", () => {
+  it("does not flag duplicate values that normalize to the same URL", () => {
+    expect(
+      hasConflictingDuplicateValues([
+        "https://sade-il.com/requests-activity",
+        "https://sade-il.com/requests-activity/",
+      ]),
+    ).toBe(false);
+  });
+
+  it("flags duplicates when normalized values conflict", () => {
+    expect(
+      hasConflictingDuplicateValues([
+        "https://sade-il.com/requests-activity",
+        "https://sade-il.com/projects",
+      ]),
+    ).toBe(true);
+  });
+
+  it("does not report a conflict when only one tag value exists", () => {
+    expect(hasConflictingDuplicateValues(["https://sade-il.com/requests-activity"])).toBe(false);
+  });
+
+  it("treats distinct unparsable duplicate values as conflicting", () => {
+    expect(hasConflictingDuplicateValues(["%%%bad-url-1", "%%%bad-url-2"])).toBe(true);
+  });
+});
