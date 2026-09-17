@@ -22,7 +22,6 @@
     "test:coverage": "vitest run --coverage src/test/redirect-",
     "test:redirect": "vitest run src/test/redirect-",
     "verify:coverage-artifact": "bash scripts/verify-coverage-artifact.sh",
-
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "check:canonical": "bunx tsx scripts/check-canonical.ts"
@@ -92,7 +91,7 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^5.0.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
