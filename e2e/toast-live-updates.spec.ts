@@ -26,9 +26,9 @@ const fillValid = async (page: Page) => {
 const submitForm = (page: Page) =>
   page.getByRole("button", { name: /שליחת פנייה/ }).click();
 
-// The shadcn/Radix toast is rendered with role="status" and the title text we use
+// Scope to the Radix notifications region, then match the toast by its title text.
 const toast = (page: Page) =>
-  page.locator('ol').locator('li[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
+  page.getByRole("region", { name: /Notifications/ }).locator("li").filter({ hasText: "יש לתקן שדות בטופס" });
 
 test.describe("Toast updates live with the errors state", () => {
   test.beforeEach(async ({ page }) => {
