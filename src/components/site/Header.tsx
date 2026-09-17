@@ -5,7 +5,7 @@ import { Logo } from "./Logo";
 import { LogoBadge } from "./LogoBadge";
 import { waLink, openWhatsApp } from "@/lib/whatsapp";
 import { FACEBOOK_URL, INSTAGRAM_URL, openFacebook } from "@/lib/contact";
-import { scrollToHash } from "@/lib/scroll";
+import { navigateToHash, scrollToHash } from "@/lib/scroll";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const links = [
@@ -190,11 +190,15 @@ export const Header = () => {
                   key={l.href}
                   href={l.href}
                   onClick={(e) => {
-                    scrollToHash(e, l.href);
+                    if (l.href.startsWith("#")) {
+                     e.preventDefault();
+                     setOpen(false);
+                     menuButtonRef.current?.focus();
+                     requestAnimationFrame(() => navigateToHash(l.href));
+                     return;
+                    }
+
                     setOpen(false);
-                    // Closing the menu unmounts these links; return focus to the
-                    // toggle so it lands somewhere predictable (not <body>).
-                    menuButtonRef.current?.focus();
                   }}
                   aria-current={isActive ? "page" : undefined}
                   className={`t-body px-3 py-3 rounded-md border-r-2 transition-smooth ${

@@ -28,7 +28,7 @@ const submitForm = (page: Page) =>
   page.getByRole("button", { name: /שליחת פנייה/ }).click();
 
 const toast = (page: Page) =>
-  page.locator('ol').locator('li[role="status"]').filter({ hasText: "יש לתקן שדות בטופס" });
+  page.getByRole("region", { name: /Notifications/ }).locator("li").filter({ hasText: "יש לתקן שדות בטופס" });
 
 const closeBtn = (page: Page) =>
   toast(page).locator('button[toast-close], button[aria-label="Close"]');

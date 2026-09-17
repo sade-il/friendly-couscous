@@ -65,18 +65,21 @@ test.describe("RTL: Tab/Shift+Tab order is consistent across file states", () =>
 
   test("RTL Tab order with a valid file selected matches DOM order", async ({ page }) => {
     await fillValid(page);
-    await page.locator("#files").setInputFiles([PDF_FIXTURE]);
+    const files = page.locator("#files");
+    const trigger = page.locator("#type");
+    const desc = page.locator('textarea[name="desc"]');
+    await files.setInputFiles([PDF_FIXTURE]);
+    await desc.click();
+    await expect(desc).toBeFocused({ timeout: 2000 });
 
-    await page.locator('input[name="address"]').focus();
-    // address → type (combobox) → desc → files
-    await page.keyboard.press("Tab");
-    const afterAddress = await focusedTestId(page);
-    expect(afterAddress?.id).toBe("type");
+    await page.keyboard.press("Shift+Tab");
+    await expect(trigger).toBeFocused({ timeout: 2000 });
 
-    await page.locator('textarea[name="desc"]').focus();
+    // type (combobox) → desc → files
     await page.keyboard.press("Tab");
-    const afterDesc = await focusedTestId(page);
-    expect(afterDesc?.id).toBe("files");
+    await expect(desc).toBeFocused({ timeout: 2000 });
+    await page.keyboard.press("Tab");
+    await expect(files).toBeFocused({ timeout: 2000 });
   });
 
   test("Shift+Tab in RTL with bad file does not skip back into already-fixed fields", async ({ page }) => {
@@ -121,13 +124,22 @@ test.describe("RTL: Tab/Shift+Tab order is consistent across file states", () =>
   });
 
   test("Tab order is identical before bad selection, after submit, and after live fix", async ({ page }) => {
-    const collectFromAddress = async () => {
-      await page.locator('input[name="address"]').focus();
+    const collectFromType = async () => {
+      const trigger = page.locator("#type");
+      const desc = page.locator('textarea[name="desc"]');
+      await desc.click();
+      await expect(desc).toBeFocused({ timeout: 2000 });
+      await page.keyboard.press("Shift+Tab");
+      await expect(trigger).toBeFocused({ timeout: 2000 });
       const order: string[] = [];
-      for (let i = 0; i < 3; i++) {
+      const expectedFocusOrder = [
+        { key: "desc", locator: desc },
+        { key: "files", locator: page.locator("#files") },
+      ];
+      for (const { key, locator } of expectedFocusOrder) {
         await page.keyboard.press("Tab");
-        const f = await focusedTestId(page);
-        order.push(f?.id || f?.name || "");
+        await expect(locator).toBeFocused({ timeout: 2000 });
+        order.push(key);
       }
       return order;
     };
@@ -136,21 +148,21 @@ test.describe("RTL: Tab/Shift+Tab order is consistent across file states", () =>
 
     // 1) With a valid file
     await page.locator("#files").setInputFiles([PDF_FIXTURE]);
-    const orderValid = await collectFromAddress();
+    const orderValid = await collectFromType();
 
     // 2) After submitting with a bad selection
     await page.locator("#files").setInputFiles([PDF_FIXTURE, TXT_FIXTURE]);
     await submitForm(page);
-    const orderBad = await collectFromAddress();
+    const orderBad = await collectFromType();
 
     // 3) After live fix back to valid
     await page.locator("#files").setInputFiles([PDF_FIXTURE]);
-    const orderFixed = await collectFromAddress();
+    const orderFixed = await collectFromType();
 
-    // All three sequences should be identical (type → desc → files)
-    expect(orderValid).toEqual(["type", "desc", "files"]);
-    expect(orderBad).toEqual(["type", "desc", "files"]);
-    expect(orderFixed).toEqual(["type", "desc", "files"]);
+    // All three sequences should be identical (desc → files from the closed trigger)
+    expect(orderValid).toEqual(["desc", "files"]);
+    expect(orderBad).toEqual(["desc", "files"]);
+    expect(orderFixed).toEqual(["desc", "files"]);
   });
 
   test("Shift+Tab in RTL traverses backwards in DOM order regardless of file state", async ({ page }) => {

@@ -69,11 +69,11 @@ test.describe("Select keyboard escape — no trap inside listbox", () => {
   test("Focus never remains trapped: Escape always frees focus from the listbox", async ({ page }) => {
     await openSelect(page);
     await page.keyboard.press("Escape");
+    await expect(listbox(page)).toBeHidden({ timeout: 2000 });
 
     const insideListbox = await page.evaluate(() =>
       !!(document.activeElement as HTMLElement | null)?.closest('[role="listbox"]')
     );
     expect(insideListbox, "Escape must free focus from the listbox").toBe(false);
-    await expect(listbox(page)).toBeHidden();
   });
 });
