@@ -287,14 +287,14 @@ export const Contact = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => openWhatsApp(e, WHATSAPP_TEXT)}
-            className="mt-8 flex items-center gap-4 p-5 rounded-2xl bg-whatsapp text-whatsapp-foreground shadow-card hover:shadow-elevated transition-smooth group"
+            className="mt-8 flex items-center gap-4 p-5 rounded-2xl bg-whatsapp text-primary shadow-card hover:shadow-elevated transition-smooth group"
           >
-            <div className="w-12 h-12 rounded-xl bg-whatsapp-foreground/15 grid place-items-center group-hover:scale-110 transition-smooth">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 grid place-items-center group-hover:scale-110 transition-smooth">
               <MessageCircle className="w-6 h-6" />
             </div>
             <div>
               <div className="t-h3">פנייה ב-WhatsApp</div>
-              <div className="t-small text-whatsapp-foreground/90">המהיר ביותר — תוך שעות</div>
+              <div className="t-small text-primary/80">המהיר ביותר — תוך שעות</div>
             </div>
           </a>
 

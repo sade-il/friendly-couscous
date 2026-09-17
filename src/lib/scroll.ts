@@ -63,10 +63,8 @@ export const scrollToId = (
   return true;
 };
 
-export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+export const navigateToHash = (href: string) => {
   if (!href.startsWith("#")) return;
-
-  e.preventDefault();
   const id = href.slice(1);
 
   if (!document.getElementById(id)) {
@@ -77,6 +75,13 @@ export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => 
   window.history.pushState(null, "", href);
   scrollToId(id);
   alignToCurrentHash();
+};
+
+export const scrollToHash = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+  if (!href.startsWith("#")) return;
+
+  e.preventDefault();
+  navigateToHash(href);
 };
 
 /**

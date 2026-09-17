@@ -291,7 +291,7 @@ export const Hero = () => {
 
         {/* Rotating benefits — increases dwell time before CTAs */}
         <div className="t-hero-stack-benefits max-w-2xl animate-fade-up">
-          <div className="relative overflow-hidden rounded-xl bg-primary-foreground/[0.04] border border-gold/15 backdrop-blur-sm">
+          <div className="relative min-h-[155px] overflow-hidden rounded-xl bg-primary-foreground/[0.04] border border-gold/15 backdrop-blur-sm">
             <div className="absolute top-0 inset-x-0 h-px bg-primary-foreground/10">
               <div
                 key={slide}
